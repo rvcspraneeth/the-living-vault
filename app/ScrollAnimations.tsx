@@ -28,18 +28,24 @@ const waitForDynamicContent = (callback: () => void) => {
 export default function ScrollAnimations() {
   useEffect(() => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduceMotion) return;
+    if (reduceMotion) {
+      document.querySelector<HTMLElement>("[data-intro]")?.remove();
+      return;
+    }
 
     let context: gsap.Context | undefined;
     let rafId: number | null = null;
     const matchMedia = gsap.matchMedia();
+    let revealIntroPanels: ((onComplete?: () => void) => void) | undefined;
 
     // Split-panel intro animation
     const introEl = document.querySelector<HTMLElement>("[data-intro]");
     const introTop = document.querySelector<HTMLElement>(".intro__panel--top");
     const introBottom = document.querySelector<HTMLElement>(".intro__panel--bottom");
+    const introAperture = document.querySelector<HTMLElement>(".intro__aperture");
+    const introCanvas = document.querySelector<HTMLCanvasElement>("[data-intro-canvas]");
 
-    if (introEl && introTop && introBottom) {
+    if (introEl && introTop && introBottom && introAperture) {
       document.body.style.overflow = "hidden";
 
       const finishIntro = () => {
@@ -47,36 +53,80 @@ export default function ScrollAnimations() {
         document.body.style.overflow = "";
       };
 
-      // Safety valve — if something stalls the animation, force-complete after 5s
-      const safetyTimer = window.setTimeout(finishIntro, 5000);
+      // Safety valve — if something stalls the animation, force-complete after 10s.
+      const safetyTimer = window.setTimeout(finishIntro, 10000);
 
-      // Phase 1: mark is visible immediately, name starts hidden below it
-      gsap.set(".intro__name", { autoAlpha: 0, y: 16 });
+      // Phase 1: keep the farm film behind the panels while the brand resolves.
+      gsap.set(".intro__mark", { autoAlpha: 0, scale: 0.72, rotate: -34 });
+      gsap.set(".intro__name", { autoAlpha: 0, y: 18 });
+      gsap.set(".intro__aperture", { autoAlpha: 1, scale: 1.015, yPercent: 0, borderRadius: 0 });
+      gsap.set(".intro__grid", { autoAlpha: 0.55 });
+      gsap.set(".intro__brand-block", { autoAlpha: 1, y: 0, scale: 1 });
+      gsap.set("[data-header]", { autoAlpha: 0, y: -16 });
 
-      gsap.timeline({
-        onComplete: () => {
-          window.clearTimeout(safetyTimer);
-          finishIntro();
-        },
-      })
-        // Phase 2: name lifts into view from below the mark (~T → Terminal reveal)
+      const introTimeline = gsap.timeline({ paused: true });
+
+      introTimeline
+        // Phase 2: logo resolves first, then name lifts into place.
+        .to(".intro__mark", {
+          autoAlpha: 1,
+          scale: 1,
+          rotate: 0,
+          duration: 0.78,
+          ease: "power3.out",
+          delay: 0.18,
+        })
         .to(".intro__name", {
           autoAlpha: 1,
           y: 0,
-          duration: 0.68,
+          duration: 0.74,
           ease: "power2.out",
-          delay: 0.28,
-        })
-        // Phase 3: brief hold, then panels split open revealing the hero
+        }, "<0.22")
+        .to(".intro__brand-block", {
+          y: -10,
+          scale: 0.985,
+          duration: 0.54,
+          ease: "power2.inOut",
+        }, "+=0.48");
+
+      introTimeline.play();
+
+      revealIntroPanels = (onComplete) => {
+        const finishTimeline = gsap.timeline({
+          onComplete: () => {
+            window.clearTimeout(safetyTimer);
+            finishIntro();
+            onComplete?.();
+          },
+        });
+
+        finishTimeline
+        // Final phase: brand clears and the top/bottom panels reveal the farm film.
+        .to(".intro__brand-block", {
+          autoAlpha: 0,
+          y: -32,
+          scale: 0.94,
+          duration: 0.44,
+          ease: "power2.in",
+        }, 0)
+        .to(".intro__grid", { autoAlpha: 0, duration: 0.58, ease: "power2.out" }, 0)
+        .to(".intro__aperture", {
+          scale: 1,
+          borderRadius: 0,
+          duration: 2.45,
+          ease: "power2.out",
+        }, 0)
         .to(
           [introTop, introBottom],
           {
             yPercent: (i: number) => (i === 0 ? -100 : 100),
-            duration: 1.1,
-            ease: "power3.inOut",
+            duration: 2.45,
+            ease: "power4.inOut",
           },
-          "+=0.44"
-        );
+          0
+        )
+        .set(".intro__aperture", { autoAlpha: 1, scale: 1 });
+      };
     }
 
     waitForDynamicContent(() => {
@@ -85,13 +135,20 @@ export default function ScrollAnimations() {
         gsap.set(".reveal:not(.hero__content):not([data-crop-stage])", { autoAlpha: 0, y: 34 });
         gsap.set(".journey-card", { autoAlpha: 1, y: 0 });
 
-        // Hero text enters as panels are mid-split (~1.4s from load)
-        gsap.timeline({ defaults: { duration: 0.85 }, delay: 1.38 })
-          .from(".hero .eyebrow", { autoAlpha: 0, y: 18 }, 0)
-          .from(".hero h1", { autoAlpha: 0, y: 28 }, 0.14)
-          .from(".hero__lede", { autoAlpha: 0, y: 24 }, 0.28)
-          .from(".hero__actions", { autoAlpha: 0, y: 20 }, 0.42)
-          .from(".hero__proof > div", { autoAlpha: 0, y: 22, stagger: 0.08 }, 0.56);
+        const revealHeroText = () => {
+          gsap.timeline({ defaults: { duration: 0.85 } })
+            .to("[data-header]", { autoAlpha: 1, y: 0, duration: 0.62, ease: "power2.out" }, 0)
+            .to(".hero .eyebrow", { autoAlpha: 1, y: 0 }, 0.08)
+            .to(".hero h1", { autoAlpha: 1, y: 0 }, 0.2)
+            .to(".hero__lede", { autoAlpha: 1, y: 0 }, 0.34)
+            .to(".hero__actions", { autoAlpha: 1, y: 0 }, 0.48);
+        };
+
+        gsap.set("[data-header]", { autoAlpha: 0, y: -16 });
+        gsap.set(".hero .eyebrow", { autoAlpha: 0, y: 18 });
+        gsap.set(".hero h1", { autoAlpha: 0, y: 28 });
+        gsap.set(".hero__lede", { autoAlpha: 0, y: 24 });
+        gsap.set(".hero__actions", { autoAlpha: 0, y: 20 });
 
         ScrollTrigger.batch(".reveal:not(.hero__content):not(.journey-card):not([data-crop-stage])", {
           start: "top 78%",
@@ -113,35 +170,190 @@ export default function ScrollAnimations() {
 
         if (videoSection && canvas) {
           const ctx = canvas.getContext("2d");
-          const FRAME_COUNT = 999;
-          const frames: HTMLImageElement[] = [];
+          const introCtx = introCanvas?.getContext("2d") ?? null;
+          const FIRST_FRAME = 44;
+          const HOME_FRAME = 80;
+          const LAST_FRAME = 999;
+          const frames = new Map<number, HTMLImageElement>();
+          const initialFrameCount = HOME_FRAME - FIRST_FRAME + 1;
+          let loadedInitialFrames = 0;
+          let initialFramesReady = false;
+          let introLeadReady = false;
+          let autoIntroStarted = false;
+          let autoIntroComplete = false;
+          let remainingFramesStarted = false;
+          let currentFrame = FIRST_FRAME;
 
-          canvas.width = window.innerWidth;
-          canvas.height = window.innerHeight;
+          const sizeCanvases = () => {
+            const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+            const width = Math.round(window.innerWidth * dpr);
+            const height = Math.round(window.innerHeight * dpr);
+            canvas.width = width;
+            canvas.height = height;
+            canvas.style.width = `${window.innerWidth}px`;
+            canvas.style.height = `${window.innerHeight}px`;
 
-          const drawFrame = (index: number) => {
-            const frame = frames[Math.min(index, frames.length - 1)];
-            if (!frame?.complete || !ctx) return;
+            if (introCanvas) {
+              introCanvas.width = width;
+              introCanvas.height = height;
+              introCanvas.style.width = `${window.innerWidth}px`;
+              introCanvas.style.height = `${window.innerHeight}px`;
+            }
+          };
+
+          const drawImageToCanvas = (
+            targetCanvas: HTMLCanvasElement,
+            targetCtx: CanvasRenderingContext2D,
+            frame: HTMLImageElement,
+          ) => {
             const iw = frame.naturalWidth || 1920;
             const ih = frame.naturalHeight || 1080;
-            const cw = canvas.width;
-            const ch = canvas.height;
+            const cw = targetCanvas.width;
+            const ch = targetCanvas.height;
             const scale = Math.max(cw / iw, ch / ih);
             const x = (cw - iw * scale) / 2;
             const y = (ch - ih * scale) / 2;
-            ctx.drawImage(frame, x, y, iw * scale, ih * scale);
+            targetCtx.imageSmoothingEnabled = true;
+            targetCtx.imageSmoothingQuality = "high";
+            targetCtx.clearRect(0, 0, cw, ch);
+            targetCtx.drawImage(frame, x, y, iw * scale, ih * scale);
           };
 
-          // Preload all frames; draw first one immediately
-          for (let i = 1; i <= FRAME_COUNT; i++) {
+          const updateIntroPreview = (frameNumber: number) => {
+            if (!introCanvas || !introCtx || autoIntroComplete) return;
+            const frame = frames.get(frameNumber);
+            if (!frame?.complete) return;
+            drawImageToCanvas(introCanvas, introCtx, frame);
+          };
+
+          sizeCanvases();
+
+          const drawFrame = (frameNumber: number) => {
+            const frame = frames.get(frameNumber);
+            if (!frame?.complete || !ctx) return;
+            drawImageToCanvas(canvas, ctx, frame);
+            currentFrame = frameNumber;
+          };
+
+          const loadFrame = (frameNumber: number, onLoad?: () => void) => {
+            if (frames.has(frameNumber)) {
+              onLoad?.();
+              return;
+            }
+
             const img = new Image();
-            img.src = `/frames/frame_${String(i).padStart(4, "0")}.jpg`;
-            img.onload = () => { if (i === 1) drawFrame(0); };
-            frames.push(img);
+            img.decoding = "async";
+            img.src = `/frames/frame_${String(frameNumber).padStart(4, "0")}.jpg`;
+            img.onload = () => onLoad?.();
+            frames.set(frameNumber, img);
+          };
+
+          const loadRemainingFrames = () => {
+            if (remainingFramesStarted) return;
+            remainingFramesStarted = true;
+            let nextFrame = HOME_FRAME + 1;
+
+            const loadBatch = () => {
+              const batchEnd = Math.min(nextFrame + 11, LAST_FRAME);
+              for (; nextFrame <= batchEnd; nextFrame += 1) {
+                loadFrame(nextFrame);
+              }
+
+              if (nextFrame <= LAST_FRAME) {
+                if (typeof window.requestIdleCallback === "function") {
+                  window.requestIdleCallback(loadBatch, { timeout: 180 });
+                } else {
+                  globalThis.setTimeout(loadBatch, 48);
+                }
+              }
+            };
+
+            loadBatch();
+          };
+
+          const startScrollFrameLoop = () => {
+            let lastFrame = -1;
+            const tick = () => {
+              const frameNumber = HOME_FRAME + Math.round(captions.totalProgress() * (LAST_FRAME - HOME_FRAME));
+              if (frameNumber !== lastFrame) {
+                drawFrame(frameNumber);
+                lastFrame = frameNumber;
+              }
+              rafId = requestAnimationFrame(tick);
+            };
+            rafId = requestAnimationFrame(tick);
+          };
+
+          const startAutoIntro = () => {
+            if (autoIntroStarted) return;
+            if (!initialFramesReady || !introLeadReady) return;
+            autoIntroStarted = true;
+
+            let lastIntroFrame = -1;
+            const introStart = performance.now();
+            const introDuration = 2450;
+            revealIntroPanels?.(() => {
+              revealHeroText();
+              startScrollFrameLoop();
+            });
+
+            const playIntroFrame = (now: number) => {
+              const progress = Math.min(1, (now - introStart) / introDuration);
+              const eased = progress < 0.5
+                ? 4 * progress * progress * progress
+                : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+              const frameNumber = Math.min(
+                HOME_FRAME,
+                FIRST_FRAME + Math.floor(eased * (initialFrameCount - 1)),
+              );
+
+              if (frameNumber !== lastIntroFrame) {
+                drawFrame(frameNumber);
+                updateIntroPreview(frameNumber);
+                lastIntroFrame = frameNumber;
+              }
+
+              if (progress < 1) {
+                requestAnimationFrame(playIntroFrame);
+                return;
+              }
+
+              autoIntroComplete = true;
+              drawFrame(HOME_FRAME);
+              loadRemainingFrames();
+            };
+
+            requestAnimationFrame(playIntroFrame);
+          };
+
+          window.setTimeout(() => {
+            introLeadReady = true;
+            startAutoIntro();
+          }, 1700);
+
+          // Skip black lead-in frames 1–43. Load only the opening frames first
+          // so the cinematic reveal is not competing with the full scroll film.
+          for (let i = FIRST_FRAME; i <= HOME_FRAME; i++) {
+            loadFrame(i, () => {
+              if (i === FIRST_FRAME) {
+                drawFrame(FIRST_FRAME);
+                updateIntroPreview(FIRST_FRAME);
+              }
+              if (i >= FIRST_FRAME && i <= HOME_FRAME) {
+                loadedInitialFrames += 1;
+                if (loadedInitialFrames === initialFrameCount) {
+                  initialFramesReady = true;
+                  startAutoIntro();
+                }
+              }
+            });
           }
 
           // Caption timeline — positions derived from per-frame analysis of Hero_vault.mp4
-          // progress = frame / 998, section = 800vh, scrub = 0.5
+          // scroll progress maps frame 80–999, after the automatic homepage
+          // lead-in plays frames 44–80.
+          const progressForFrame = (frame: number) =>
+            Math.max(0, Math.min(1, (frame - HOME_FRAME) / (LAST_FRAME - HOME_FRAME)));
           //
           // Frame map:
           //   001–050  : black fade-in
@@ -160,44 +372,44 @@ export default function ScrollAnimations() {
           // Hero content fades out as soon as scroll begins
           captions.to(".hero__content", { autoAlpha: 0, y: -40, duration: 0.04, ease: "power2.in" }, 0);
 
-          // Caption 1 — Aerial exterior | frames 065–140 | progress 0.065–0.14
+          // Caption 1 — Aerial exterior | frames 080–140
           captions
-            .to(".hero-caption--1", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, 0.07)
-            .to(".hero-caption--1", { autoAlpha: 0, y: -14, duration: 0.03 }, 0.13);
+            .to(".hero-caption--1", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(80))
+            .to(".hero-caption--1", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(140));
 
           // Caption 2 — Entering polyhouse | frames 170–245 | progress 0.17–0.245
           captions
-            .to(".hero-caption--2", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, 0.18)
-            .to(".hero-caption--2", { autoAlpha: 0, y: -14, duration: 0.03 }, 0.245);
+            .to(".hero-caption--2", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(170))
+            .to(".hero-caption--2", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(245));
 
           // Caption 3 — Lettuce beds | frames 285–390 | progress 0.285–0.39
           captions
-            .to(".hero-caption--3", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, 0.29)
-            .to(".hero-caption--3", { autoAlpha: 0, y: -14, duration: 0.03 }, 0.39);
+            .to(".hero-caption--3", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(285))
+            .to(".hero-caption--3", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(390));
 
           // Caption 4 — Kale rows | frames 415–530 | progress 0.415–0.53
           captions
-            .to(".hero-caption--4", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, 0.425)
-            .to(".hero-caption--4", { autoAlpha: 0, y: -14, duration: 0.03 }, 0.53);
+            .to(".hero-caption--4", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(415))
+            .to(".hero-caption--4", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(530));
 
           // Caption 5 — Tomatoes | frames 560–645 | progress 0.56–0.645
           captions
-            .to(".hero-caption--5", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, 0.57)
-            .to(".hero-caption--5", { autoAlpha: 0, y: -14, duration: 0.03 }, 0.645);
+            .to(".hero-caption--5", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(560))
+            .to(".hero-caption--5", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(645));
 
           // Caption 6 — Bell peppers | frames 665–775 | progress 0.665–0.775
           captions
-            .to(".hero-caption--6", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, 0.675)
-            .to(".hero-caption--6", { autoAlpha: 0, y: -14, duration: 0.03 }, 0.775);
+            .to(".hero-caption--6", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(665))
+            .to(".hero-caption--6", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(775));
 
           // Caption 7 — Ginger, Turmeric, Black pepper | frames 795–935 | progress 0.795–0.935
           captions
-            .to(".hero-caption--7", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, 0.805)
-            .to(".hero-caption--7", { autoAlpha: 0, y: -14, duration: 0.03 }, 0.935);
+            .to(".hero-caption--7", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(795))
+            .to(".hero-caption--7", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(935));
 
           // Caption 8 — Vanilla | frames 955–999 | progress 0.955–1.00, stays visible
           captions
-            .to(".hero-caption--8", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, 0.96);
+            .to(".hero-caption--8", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(955));
 
           // CSS sticky handles layout — ScrollTrigger tracks progress through the 800vh section
           ScrollTrigger.create({
@@ -208,18 +420,11 @@ export default function ScrollAnimations() {
             animation: captions,
           });
 
-          // Continuous rAF loop — reads lagged animation progress so frames stay
-          // in sync with the scrub momentum rather than snapping to raw scroll
-          let lastIndex = -1;
-          const tick = () => {
-            const index = Math.round(captions.totalProgress() * (FRAME_COUNT - 1));
-            if (index !== lastIndex) {
-              drawFrame(index);
-              lastIndex = index;
-            }
-            rafId = requestAnimationFrame(tick);
-          };
-          rafId = requestAnimationFrame(tick);
+          window.addEventListener("resize", () => {
+            sizeCanvases();
+            drawFrame(currentFrame);
+            updateIntroPreview(currentFrame);
+          });
         }
 
         matchMedia.add("(min-width: 981px)", () => {

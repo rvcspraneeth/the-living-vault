@@ -48,6 +48,9 @@ export default function Home() {
             </div>
           </div>
         </div>
+        <div className="intro__aperture" aria-hidden="true">
+          <canvas className="intro__canvas" data-intro-canvas />
+        </div>
       </div>
 
       <header className="site-header" data-header>
