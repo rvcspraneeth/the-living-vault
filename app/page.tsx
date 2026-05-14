@@ -99,6 +99,7 @@ export default function Home() {
             <canvas className="hero__canvas" data-hero-canvas />
             <div className="hero__mist" />
             <div className="hero__light" />
+            <div className="hero__veil" />
             <div className="hero-captions" aria-hidden="true">
               <p className="hero-caption hero-caption--1">Protected polyhouses. One standard of care.</p>
               <p className="hero-caption hero-caption--2">Controlled from inside. Built around the crop.</p>
