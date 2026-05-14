@@ -82,15 +82,15 @@ export default function Home() {
             <span className="nav-toggle__line" />
             <span className="sr-only">Open navigation</span>
           </button>
-          <div className="nav-menu" id="nav-menu" data-nav-menu>
-            {navItems.map(([label, href]) => (
-              <a key={href} href={href}>
-                {label}
-              </a>
-            ))}
-          </div>
         </nav>
       </header>
+      <div className="nav-menu" id="nav-menu" data-nav-menu aria-label="Primary navigation">
+        {navItems.map(([label, href]) => (
+          <a key={href} href={href}>
+            {label}
+          </a>
+        ))}
+      </div>
 
       <main id="main">
         <div className="hero-scroll" id="top" data-video-section>
