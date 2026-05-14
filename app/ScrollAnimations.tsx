@@ -304,7 +304,7 @@ export default function ScrollAnimations() {
             if (pending.has(frameNumber)) return;
             pending.add(frameNumber);
 
-            fetch(`/frames/frame_${String(frameNumber).padStart(4, "0")}.webp`)
+            fetch(`/frames/frame_${String(frameNumber).padStart(4, "0")}.jpg`)
               .then((r) => r.blob())
               .then((blob) => createImageBitmap(blob))
               .then((bitmap) => {
