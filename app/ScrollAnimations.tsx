@@ -229,8 +229,10 @@ export default function ScrollAnimations() {
           let autoIntroComplete = false;
           let currentFrame = FIRST_FRAME;
 
+          const isMobile = window.innerWidth <= 768;
+
           const sizeCanvases = () => {
-            const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+            const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2.5);
             const width = Math.round(window.innerWidth * dpr);
             const height = Math.round(window.innerHeight * dpr);
             canvas.width = width;
@@ -260,7 +262,7 @@ export default function ScrollAnimations() {
             const x = (cw - iw * scale) / 2;
             const y = (ch - ih * scale) / 2;
             targetCtx.imageSmoothingEnabled = true;
-            targetCtx.imageSmoothingQuality = "high";
+            targetCtx.imageSmoothingQuality = isMobile ? "medium" : "high";
             if (clear) targetCtx.clearRect(0, 0, cw, ch);
             targetCtx.drawImage(frame, x, y, iw * scale, ih * scale);
           };
@@ -318,7 +320,7 @@ export default function ScrollAnimations() {
             let lastFrame = -1;
             let lastBlend = -1;
             let lastEvictAt = HOME_FRAME;
-            const LOOKAHEAD = 15;
+            const LOOKAHEAD = isMobile ? 25 : 15;
             const LOOKBEHIND = 10;
 
             const tick = () => {
