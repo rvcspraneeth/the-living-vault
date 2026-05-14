@@ -1530,8 +1530,23 @@ button.button {
   .hero::before {
     width: 100%;
     background:
-      radial-gradient(ellipse at 30% 42%, rgba(10, 5, 3, 0.52), transparent 26rem),
-      linear-gradient(180deg, rgba(10, 5, 3, 0.72), rgba(10, 5, 3, 0.42) 55%, rgba(10, 5, 3, 0.7));
+      radial-gradient(ellipse at 30% 42%, rgba(10, 5, 3, 0.28), transparent 22rem),
+      linear-gradient(180deg, rgba(10, 5, 3, 0.50), rgba(10, 5, 3, 0.10) 42%, rgba(10, 5, 3, 0.42));
+  }
+
+  .hero__scene::after {
+    background:
+      linear-gradient(180deg,
+        rgba(9, 5, 3, 0.52) 0%,
+        rgba(9, 5, 3, 0.10) 20%,
+        rgba(9, 5, 3, 0.04) 52%,
+        rgba(9, 5, 3, 0.38) 100%
+      );
+    opacity: 0.88;
+  }
+
+  .hero-caption {
+    max-width: min(28rem, 88vw);
   }
 
   .hero h1 {
