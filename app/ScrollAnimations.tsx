@@ -180,7 +180,8 @@ export default function ScrollAnimations() {
             .to(".hero .eyebrow", { autoAlpha: 1, y: 0 }, 0.08)
             .to(".hero h1", { autoAlpha: 1, y: 0 }, 0.2)
             .to(".hero__lede", { autoAlpha: 1, y: 0 }, 0.34)
-            .to(".hero__actions", { autoAlpha: 1, y: 0 }, 0.48);
+            .to(".hero__actions", { autoAlpha: 1, y: 0 }, 0.48)
+            .to(".hero__veil", { autoAlpha: 1, duration: 1.4, ease: "power2.inOut" }, 0);
         };
 
         gsap.set("[data-header]", { autoAlpha: 0, y: -16 });
@@ -188,6 +189,7 @@ export default function ScrollAnimations() {
         gsap.set(".hero h1", { autoAlpha: 0, y: 28 });
         gsap.set(".hero__lede", { autoAlpha: 0, y: 24 });
         gsap.set(".hero__actions", { autoAlpha: 0, y: 20 });
+        gsap.set(".hero__veil", { autoAlpha: 0 });
 
         ScrollTrigger.batch(".reveal:not(.hero__content):not(.journey-card):not([data-crop-stage])", {
           start: "top 78%",
@@ -302,7 +304,7 @@ export default function ScrollAnimations() {
             if (pending.has(frameNumber)) return;
             pending.add(frameNumber);
 
-            fetch(`/frames/frame_${String(frameNumber).padStart(4, "0")}.jpg`)
+            fetch(`/frames/frame_${String(frameNumber).padStart(4, "0")}.webp`)
               .then((r) => r.blob())
               .then((blob) => createImageBitmap(blob))
               .then((bitmap) => {

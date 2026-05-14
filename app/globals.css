@@ -533,12 +533,20 @@ p {
 }
 
 .hero__scene::after {
+  display: none;
+}
+
+.hero__veil {
+  position: absolute;
+  inset: 0;
   z-index: 3;
+  pointer-events: none;
   background:
     radial-gradient(ellipse at 21% 52%, rgba(9, 5, 3, 0.62), transparent 31rem),
     linear-gradient(90deg, rgba(17, 9, 5, 0.92), rgba(17, 9, 5, 0.58) 34%, rgba(17, 9, 5, 0.08) 62%, rgba(17, 9, 5, 0.18)),
     linear-gradient(180deg, rgba(43, 27, 18, 0.1), transparent 30%, transparent 68%, rgba(43, 27, 18, 0.36));
   opacity: 0.96;
+  will-change: opacity;
 }
 
 .hero__mist {
@@ -1534,7 +1542,7 @@ button.button {
       linear-gradient(180deg, rgba(10, 5, 3, 0.50), rgba(10, 5, 3, 0.10) 42%, rgba(10, 5, 3, 0.42));
   }
 
-  .hero__scene::after {
+  .hero__veil {
     background:
       linear-gradient(180deg,
         rgba(9, 5, 3, 0.52) 0%,
