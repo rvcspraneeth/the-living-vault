@@ -100,8 +100,8 @@ export default function Home() {
                 {label}
               </a>
             ))}
-            <a className="nav-menu__cta" href="#partner">
-              Partner
+            <a className="nav-menu__cta" href="#contact">
+              Contact
             </a>
           </div>
         </nav>
@@ -446,29 +446,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="final-cta section-shell" id="partner" aria-labelledby="final-title" data-flow-final>
-          <Image className="final-cta__image" src="/images/dusk-polyhouse-v2.png" alt="" fill sizes="100vw" />
-          <div className="final-cta__glow" aria-hidden="true" />
-          <div className="final-cta__content reveal">
-            <p className="eyebrow">Fresh crops, grown for dependable supply</p>
-            <h2 id="final-title">Source fresh crops with consistent care and handling.</h2>
-            <div className="hero__actions">
-              <a className="button button--primary" href="#contact">
-                Get in Touch
-              </a>
-              <a className="button button--ghost" href="#crops">
-                Explore Our Produce
-              </a>
-            </div>
-            <div className="final-cta__contact">
-              <a className="final-cta__email" href="mailto:hello@thelivingvault.in">
-                hello@thelivingvault.in
-              </a>
-              <span className="final-cta__sep" aria-hidden="true" />
-              <span className="final-cta__location">Andhra Pradesh, India</span>
-            </div>
-          </div>
-        </section>
+
       </main>
 
       <footer className="footer">
