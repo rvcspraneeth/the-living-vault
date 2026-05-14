@@ -304,7 +304,7 @@ export default function ScrollAnimations() {
             if (pending.has(frameNumber)) return;
             pending.add(frameNumber);
 
-            fetch(`/frames/frame_${String(frameNumber).padStart(4, "0")}.webp`)
+            fetch(`/frames/frame_${String(frameNumber).padStart(4, "0")}.jpg`)
               .then((r) => r.blob())
               .then((blob) => createImageBitmap(blob))
               .then((bitmap) => {
@@ -372,10 +372,10 @@ export default function ScrollAnimations() {
             let lastIntroFrame = -1;
             const introStart = performance.now();
             const introDuration = 2450;
-            revealIntroPanels?.(() => {
+            revealIntroPanels?.((() => {
               revealHeroText();
               startScrollFrameLoop();
-            });
+            }));
 
             const playIntroFrame = (now: number) => {
               const progress = Math.min(1, (now - introStart) / introDuration);
