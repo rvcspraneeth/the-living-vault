@@ -598,16 +598,6 @@ export default function ScrollAnimations() {
             });
           });
 
-          gsap.timeline({
-            scrollTrigger: {
-              trigger: "[data-flow-final]",
-              start: "top bottom",
-              end: "top top",
-              scrub: 0.8,
-            },
-          })
-            .fromTo(".final-cta__image", { scale: 1.12 }, { scale: 1, ease: "none" }, 0)
-            .fromTo(".final-cta__content", { y: 72, opacity: 0.45 }, { y: 0, opacity: 1, ease: "none" }, 0);
         });
 
         matchMedia.add("(max-width: 980px)", () => {});

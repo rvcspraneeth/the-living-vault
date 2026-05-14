@@ -100,9 +100,6 @@ export default function Home() {
                 {label}
               </a>
             ))}
-            <a className="nav-menu__cta" href="#contact">
-              Contact
-            </a>
           </div>
         </nav>
       </header>
@@ -112,9 +109,6 @@ export default function Home() {
         <section className="hero section-shell" aria-labelledby="hero-title" data-flow-hero>
           <div className="hero__scene" aria-hidden="true">
             <canvas className="hero__canvas" data-hero-canvas />
-            <div className="hero__corridor hero-depth" data-depth="16" />
-            <div className="hero__cover hero-depth" data-depth="26" />
-            <div className="hero__vines hero-depth" data-depth="36" />
             <div className="hero__mist" />
             <div className="hero__light" />
             <div className="hero-captions" aria-hidden="true">
@@ -238,7 +232,6 @@ export default function Home() {
           <div className="crop-tunnel" data-crop-tunnel aria-hidden="true">
             <div className="crop-tunnel__scene">
               <div className="crop-tunnel__roof" />
-              <div className="crop-tunnel__path" />
               <div className="crop-tunnel__rows">
                 {cropWalkthrough.map(([name, note], index) => (
                   <div className="crop-tunnel__node" data-crop-node key={name}>
@@ -264,7 +257,6 @@ export default function Home() {
                   decoding="async"
                 />
               </div>
-              <div className="crop-stage__texture" />
               <div className="crop-stage__rings" />
             </div>
             <div className="crop-stage__content">
@@ -364,17 +356,6 @@ export default function Home() {
               <span>Dewed greens</span>
               <h3>Cool veins, clean bite.</h3>
             </article>
-          </div>
-        </section>
-
-        <section className="vision section-pad" aria-labelledby="vision-title">
-          <div className="vision__frame reveal">
-            <p className="eyebrow">Crop supply with discipline</p>
-            <h2 id="vision-title">Fresh crops need skill, timing, and careful handling.</h2>
-            <p>
-              Buyers are purchasing crops that look better, taste better, and handle better because
-              they are grown, picked, sorted, and packed with discipline.
-            </p>
           </div>
         </section>
 
