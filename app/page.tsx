@@ -10,18 +10,6 @@ const navItems = [
   ["Contact", "#contact"],
 ] as const;
 
-const cropWalkthrough = [
-  ["Vanilla", "Aromatic pods"],
-  ["Ginger", "Clean snap"],
-  ["Turmeric", "Color-rich roots"],
-  ["Black Pepper", "Dense clusters"],
-  ["Bell Pepper", "Glossy fruit"],
-  ["Lettuce", "Clean crunch"],
-  ["Kale", "Structured leaves"],
-  ["Spinach", "Tender finish"],
-  ["Cilantro", "Bright bunches"],
-] as const;
-
 export default function Home() {
   return (
     <>
@@ -229,20 +217,6 @@ export default function Home() {
               Select a crop to see its quality signals, harvest value, and crop-specific care notes.
             </p>
           </div>
-          <div className="crop-tunnel" data-crop-tunnel aria-hidden="true">
-            <div className="crop-tunnel__scene">
-              <div className="crop-tunnel__roof" />
-              <div className="crop-tunnel__rows">
-                {cropWalkthrough.map(([name, note], index) => (
-                  <div className="crop-tunnel__node" data-crop-node key={name}>
-                    <span>{String(index + 1).padStart(2, "0")}</span>
-                    <strong>{name}</strong>
-                    <small>{note}</small>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
           <div className="crop-stage reveal" data-crop-stage>
             <div className="crop-stage__visual" aria-hidden="true">
               <div className="crop-stage__orb">
@@ -326,36 +300,6 @@ export default function Home() {
                 </article>
               ))}
             </div>
-          </div>
-        </section>
-
-        <section className="gallery section-pad" aria-labelledby="gallery-title" data-flow-gallery>
-          <div className="section-heading reveal">
-            <p className="eyebrow">Fresh harvest gallery</p>
-            <h2 id="gallery-title">Close enough to judge aroma, color, and texture.</h2>
-            <p>
-              The crop has to sell on the senses: bright turmeric flesh, aromatic pepper clusters,
-              crisp greens, glossy peppers, and roots with clean market finish.
-            </p>
-          </div>
-          <div className="macro-grid">
-            <article className="macro-card macro-card--image reveal">
-              <Image src="/images/macro-gallery-v2.png" alt="" fill sizes="(max-width: 680px) 100vw, 55vw" />
-              <span>Fresh harvests</span>
-              <h3>Spices, herbs, greens, and vegetables grown with care.</h3>
-            </article>
-            <article className="macro-card macro-card--turmeric reveal">
-              <span>Turmeric flesh</span>
-              <h3>Gold that stains the light.</h3>
-            </article>
-            <article className="macro-card macro-card--pepper reveal">
-              <span>Pepper clusters</span>
-              <h3>Shadow, vine, and heat.</h3>
-            </article>
-            <article className="macro-card macro-card--leaf reveal">
-              <span>Dewed greens</span>
-              <h3>Cool veins, clean bite.</h3>
-            </article>
           </div>
         </section>
 

@@ -13,7 +13,7 @@ const waitForDynamicContent = (callback: () => void) => {
     const journeyCards = document.querySelectorAll(".journey-card");
     const cropTabs = document.querySelectorAll(".crop-tab");
 
-    if (journeyCards.length >= 7 && cropTabs.length >= 9) {
+    if (journeyCards.length >= 7 && cropTabs.length > 0) {
       callback();
       return;
     }
@@ -556,47 +556,6 @@ export default function ScrollAnimations() {
               },
             });
           }
-
-          const cropTunnel = document.querySelector<HTMLElement>("[data-crop-tunnel]");
-          const cropNodes = gsap.utils.toArray<HTMLElement>("[data-crop-node]");
-
-          if (cropTunnel && cropNodes.length) {
-            gsap.from(cropNodes, {
-              autoAlpha: 0,
-              y: 24,
-              stagger: 0.05,
-              duration: 0.65,
-              scrollTrigger: {
-                trigger: cropTunnel,
-                start: "top 72%",
-                once: true,
-              },
-            });
-          }
-
-          gsap.utils.toArray<HTMLElement>(".macro-card").forEach((card, index) => {
-            gsap.from(card, {
-              autoAlpha: 0,
-              y: 44,
-              duration: 0.75,
-              scrollTrigger: {
-                trigger: card,
-                start: "top 82%",
-                once: true,
-              },
-            });
-
-            gsap.to(card, {
-              y: index % 2 === 0 ? -34 : -18,
-              ease: "none",
-              scrollTrigger: {
-                trigger: "[data-flow-gallery]",
-                start: "top bottom",
-                end: "bottom top",
-                scrub: 0.8,
-              },
-            });
-          });
 
         });
 
