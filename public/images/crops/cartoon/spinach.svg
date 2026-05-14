@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 720" role="img" aria-label="Cartoon spinach leaves">
+  <defs>
+    <linearGradient id="spinach" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#73c983"/>
+      <stop offset=".55" stop-color="#2f9a5d"/>
+      <stop offset="1" stop-color="#0e5535"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="361" cy="589" rx="180" ry="34" fill="#000" opacity=".18"/>
+  <g stroke="#0d4b32" stroke-width="8" stroke-linejoin="round">
+    <path d="M356 550c-15-109 3-221 54-336" fill="none" stroke="#a9d58a" stroke-width="14" stroke-linecap="round"/>
+    <path d="M336 294c-76-78-168-68-212 24 96 7 163 54 201 141 30-47 34-102 11-165Z" fill="url(#spinach)"/>
+    <path d="M394 288c83-72 174-53 210 44-98-2-171 36-220 116-23-50-20-104 10-160Z" fill="url(#spinach)"/>
+    <path d="M279 430c-61-29-118-12-153 47 70 16 125 8 165-25Z" fill="url(#spinach)"/>
+    <path d="M447 428c66-22 121 2 149 66-72 9-126-5-161-42Z" fill="url(#spinach)"/>
+  </g>
+  <g fill="none" stroke="#c5ebb0" stroke-width="7" stroke-linecap="round" opacity=".58">
+    <path d="M182 318c58 29 102 73 133 132"/>
+    <path d="M552 337c-63 21-113 59-151 114"/>
+    <path d="M178 475c40 3 75-4 105-22"/>
+    <path d="M546 492c-41-1-76-13-104-37"/>
+  </g>
+</svg>

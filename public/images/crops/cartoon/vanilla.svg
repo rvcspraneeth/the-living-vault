@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 720" role="img" aria-label="Cartoon vanilla pods">
+  <defs>
+    <linearGradient id="pod" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#6b3a22"/>
+      <stop offset="1" stop-color="#25120c"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#83b86a"/>
+      <stop offset="1" stop-color="#236139"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="356" cy="594" rx="188" ry="34" fill="#000" opacity=".18"/>
+  <path d="M233 222c64-82 159-96 247-42-99 6-174 49-225 129-27 42-67-43-22-87Z" fill="url(#leaf)"/>
+  <path d="M269 255c48-34 111-50 183-51" fill="none" stroke="#cce6a7" stroke-width="9" stroke-linecap="round" opacity=".55"/>
+  <g stroke="#130905" stroke-linecap="round">
+    <path d="M276 548c-13-105 10-247 94-378 17-26 57-9 45 23-51 137-60 251-43 345 6 32-91 43-96 10Z" fill="url(#pod)" stroke-width="8"/>
+    <path d="M364 543c-19-108 2-244 70-362 15-25 53-14 46 16-31 134-26 249 0 336 10 33-110 44-116 10Z" fill="url(#pod)" stroke-width="8"/>
+    <path d="M455 522c-26-89-27-202 17-320 10-28 51-24 50 7-6 125 10 220 42 294 14 32-98 52-109 19Z" fill="url(#pod)" stroke-width="8"/>
+  </g>
+  <g fill="none" stroke="#b88662" stroke-width="7" stroke-linecap="round" opacity=".72">
+    <path d="M330 223c-36 91-48 195-36 289"/>
+    <path d="M429 230c-27 87-28 181-8 274"/>
+    <path d="M500 246c-10 78 4 157 33 232"/>
+  </g>
+</svg>

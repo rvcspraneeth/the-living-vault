@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 720" role="img" aria-label="Cartoon bell pepper">
+  <defs>
+    <linearGradient id="pep" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ff7961"/>
+      <stop offset=".55" stop-color="#d63225"/>
+      <stop offset="1" stop-color="#8e1614"/>
+    </linearGradient>
+    <linearGradient id="stem" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#80ad4f"/>
+      <stop offset="1" stop-color="#2c5f2d"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="360" cy="590" rx="168" ry="36" fill="#000" opacity=".18"/>
+  <path d="M333 203c2-51 53-83 101-59-34 20-47 47-42 86Z" fill="url(#stem)" stroke="#234a22" stroke-width="7"/>
+  <path d="M211 360c4-101 67-161 148-130 71-39 151 8 160 104 59 29 73 113 30 168-42 55-115 60-169 24-55 37-130 24-169-35-28-43-31-91 0-131Z" fill="url(#pep)" stroke="#751414" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M360 238c-41 63-43 202-5 294" fill="none" stroke="#ff9b87" stroke-width="12" stroke-linecap="round" opacity=".45"/>
+  <path d="M276 284c-34 69-31 150 11 216" fill="none" stroke="#ffb09b" stroke-width="9" stroke-linecap="round" opacity=".42"/>
+  <path d="M462 297c26 61 24 129-10 196" fill="none" stroke="#7c1110" stroke-width="8" stroke-linecap="round" opacity=".35"/>
+</svg>

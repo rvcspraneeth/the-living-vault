@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 720" role="img" aria-label="Cartoon cilantro bunch">
+  <defs>
+    <linearGradient id="cilantro" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#8bdc88"/>
+      <stop offset=".56" stop-color="#37a85e"/>
+      <stop offset="1" stop-color="#126039"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="360" cy="590" rx="162" ry="34" fill="#000" opacity=".18"/>
+  <g fill="none" stroke="#7fcf72" stroke-width="11" stroke-linecap="round">
+    <path d="M358 555c-13-118-55-208-126-269"/>
+    <path d="M363 555c5-122 4-230-2-323"/>
+    <path d="M370 555c20-119 63-212 128-279"/>
+    <path d="M360 555c-41-94-97-165-169-213"/>
+    <path d="M369 555c45-91 100-162 166-214"/>
+  </g>
+  <g stroke="#0e5632" stroke-width="7" stroke-linejoin="round">
+    <path d="M202 242c-40-18-78 10-73 53 35-25 73-25 114 0 0-22-14-42-41-53Z" fill="url(#cilantro)"/>
+    <path d="M273 271c-28-37-78-28-95 15 43-6 78 7 105 39 10-20 7-38-10-54Z" fill="url(#cilantro)"/>
+    <path d="M362 204c-35-29-82-13-91 33 40-13 77-6 110 21 6-21 0-39-19-54Z" fill="url(#cilantro)"/>
+    <path d="M465 244c33-34 82-23 98 22-43-7-79 6-108 39-9-21-6-41 10-61Z" fill="url(#cilantro)"/>
+    <path d="M539 320c43-19 82 10 78 56-38-26-77-26-119 0 0-25 14-44 41-56Z" fill="url(#cilantro)"/>
+    <path d="M189 335c-43-13-77 18-68 61 33-28 70-34 113-17-3-22-18-37-45-44Z" fill="url(#cilantro)"/>
+  </g>
+</svg>
