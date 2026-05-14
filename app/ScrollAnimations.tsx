@@ -372,10 +372,10 @@ export default function ScrollAnimations() {
             let lastIntroFrame = -1;
             const introStart = performance.now();
             const introDuration = 2450;
-            revealIntroPanels?.((() => {
+            revealIntroPanels?.(() => {
               revealHeroText();
               startScrollFrameLoop();
-            }));
+            });
 
             const playIntroFrame = (now: number) => {
               const progress = Math.min(1, (now - introStart) / introDuration);
@@ -511,7 +511,10 @@ export default function ScrollAnimations() {
             animation: captions,
           });
 
+          let lastResizeWidth = window.innerWidth;
           window.addEventListener("resize", () => {
+            if (window.innerWidth === lastResizeWidth) return;
+            lastResizeWidth = window.innerWidth;
             sizeCanvases();
             drawFrame(currentFrame);
             updateIntroPreview(currentFrame);
