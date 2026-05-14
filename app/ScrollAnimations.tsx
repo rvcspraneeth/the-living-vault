@@ -431,28 +431,14 @@ export default function ScrollAnimations() {
                 if (loadedInitialFrames === initialFrameCount) {
                   initialFramesReady = true;
                   startAutoIntro();
+                  // Initial frames are in — now flood the connection pool with
+                  // all scroll frames so they're decoded before the user scrolls.
+                  if (!isMobile) {
+                    for (let f = HOME_FRAME + 1; f <= LAST_FRAME; f++) loadFrame(f);
+                  }
                 }
               }
             });
-          }
-
-          // Desktop: begin preloading all scroll frames immediately during the intro
-          // so by the time the user can scroll (~3-4 s), most frames are decoded.
-          if (!isMobile) {
-            let nextBatch = HOME_FRAME + 1;
-            const preloadBatch = () => {
-              const end = Math.min(nextBatch + 40 - 1, LAST_FRAME);
-              for (let f = nextBatch; f <= end; f++) loadFrame(f);
-              nextBatch = end + 1;
-              if (nextBatch <= LAST_FRAME) {
-                "requestIdleCallback" in window
-                  ? requestIdleCallback(preloadBatch)
-                  : setTimeout(preloadBatch, 16);
-              }
-            };
-            "requestIdleCallback" in window
-              ? requestIdleCallback(preloadBatch)
-              : setTimeout(preloadBatch, 16);
           }
 
           // Priority-load the targeted bitmap blend frames. They are used for
