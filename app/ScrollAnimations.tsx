@@ -511,7 +511,10 @@ export default function ScrollAnimations() {
             animation: captions,
           });
 
+          let lastResizeWidth = window.innerWidth;
           window.addEventListener("resize", () => {
+            if (window.innerWidth === lastResizeWidth) return;
+            lastResizeWidth = window.innerWidth;
             sizeCanvases();
             drawFrame(currentFrame);
             updateIntroPreview(currentFrame);
