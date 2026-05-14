@@ -227,7 +227,6 @@ export default function ScrollAnimations() {
           let introLeadReady = false;
           let autoIntroStarted = false;
           let autoIntroComplete = false;
-          let remainingFramesStarted = false;
           let currentFrame = FIRST_FRAME;
 
           const sizeCanvases = () => {
@@ -315,34 +314,31 @@ export default function ScrollAnimations() {
               .catch(() => pending.delete(frameNumber));
           };
 
-          const loadRemainingFrames = () => {
-            if (remainingFramesStarted) return;
-            remainingFramesStarted = true;
-            let nextFrame = HOME_FRAME + 1;
-
-            const loadBatch = () => {
-              const batchEnd = Math.min(nextFrame + 11, LAST_FRAME);
-              for (; nextFrame <= batchEnd; nextFrame += 1) {
-                loadFrame(nextFrame);
-              }
-
-              if (nextFrame <= LAST_FRAME) {
-                if (typeof window.requestIdleCallback === "function") {
-                  window.requestIdleCallback(loadBatch, { timeout: 180 });
-                } else {
-                  globalThis.setTimeout(loadBatch, 48);
-                }
-              }
-            };
-
-            loadBatch();
-          };
-
           const startScrollFrameLoop = () => {
             let lastFrame = -1;
             let lastBlend = -1;
+            let lastEvictAt = HOME_FRAME;
+            const LOOKAHEAD = 15;
+            const LOOKBEHIND = 10;
+
             const tick = () => {
               const preciseFrame = HOME_FRAME + captions.totalProgress() * (LAST_FRAME - HOME_FRAME);
+              const roundedFrame = Math.round(preciseFrame);
+
+              // Sliding window: stream frames in ahead, evict frames behind
+              const loadTo = Math.min(roundedFrame + LOOKAHEAD, LAST_FRAME);
+              for (let f = roundedFrame; f <= loadTo; f++) loadFrame(f);
+              if (Math.abs(roundedFrame - lastEvictAt) >= 20) {
+                lastEvictAt = roundedFrame;
+                const keepFrom = Math.max(HOME_FRAME, roundedFrame - LOOKBEHIND);
+                for (const [key, bitmap] of frames) {
+                  if (key > HOME_FRAME && key < keepFrom) {
+                    bitmap.close();
+                    frames.delete(key);
+                  }
+                }
+              }
+
               if (preciseFrame >= MORPH_WINDOW_START && preciseFrame < MORPH_WINDOW_END) {
                 const rawProgress = (preciseFrame - MORPH_WINDOW_START) / (MORPH_WINDOW_END - MORPH_WINDOW_START);
                 const blendProgress = rawProgress * rawProgress * (3 - 2 * rawProgress);
@@ -352,10 +348,9 @@ export default function ScrollAnimations() {
                   lastFrame = -1;
                 }
               } else {
-                const frameNumber = Math.round(preciseFrame);
-                if (frameNumber !== lastFrame) {
-                  drawFrame(frameNumber);
-                  lastFrame = frameNumber;
+                if (roundedFrame !== lastFrame) {
+                  drawFrame(roundedFrame);
+                  lastFrame = roundedFrame;
                   lastBlend = -1;
                 }
               }
@@ -400,7 +395,11 @@ export default function ScrollAnimations() {
 
               autoIntroComplete = true;
               drawFrame(HOME_FRAME);
-              loadRemainingFrames();
+              // Free intro frames (44–79) — no longer needed once hero is visible
+              for (let f = FIRST_FRAME; f < HOME_FRAME; f++) {
+                const bmp = frames.get(f);
+                if (bmp) { bmp.close(); frames.delete(f); }
+              }
             };
 
             requestAnimationFrame(playIntroFrame);
