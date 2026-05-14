@@ -72,6 +72,13 @@ export default function Home() {
               <small>Fresh crops grown with care</small>
             </span>
           </a>
+          <div className="nav-menu" id="nav-menu" data-nav-menu aria-label="Primary navigation">
+            {navItems.map(([label, href]) => (
+              <a key={href} href={href}>
+                {label}
+              </a>
+            ))}
+          </div>
           <button
             className="nav-toggle"
             type="button"
@@ -84,13 +91,6 @@ export default function Home() {
           </button>
         </nav>
       </header>
-      <div className="nav-menu" id="nav-menu" data-nav-menu aria-label="Primary navigation">
-        {navItems.map(([label, href]) => (
-          <a key={href} href={href}>
-            {label}
-          </a>
-        ))}
-      </div>
 
       <main id="main">
         <div className="hero-scroll" id="top" data-video-section>

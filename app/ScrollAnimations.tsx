@@ -320,25 +320,31 @@ export default function ScrollAnimations() {
             let lastFrame = -1;
             let lastBlend = -1;
             let lastEvictAt = HOME_FRAME;
-            const LOOKAHEAD = isMobile ? 25 : 15;
-            const LOOKBEHIND = 10;
 
             const tick = () => {
               const preciseFrame = HOME_FRAME + captions.totalProgress() * (LAST_FRAME - HOME_FRAME);
               const roundedFrame = Math.round(preciseFrame);
 
-              // Sliding window: stream frames in ahead, evict frames behind
-              const loadTo = Math.min(roundedFrame + LOOKAHEAD, LAST_FRAME);
-              for (let f = roundedFrame; f <= loadTo; f++) loadFrame(f);
-              if (Math.abs(roundedFrame - lastEvictAt) >= 20) {
-                lastEvictAt = roundedFrame;
-                const keepFrom = Math.max(HOME_FRAME, roundedFrame - LOOKBEHIND);
-                for (const [key, bitmap] of frames) {
-                  if (key > HOME_FRAME && key < keepFrom) {
-                    bitmap.close();
-                    frames.delete(key);
+              if (isMobile) {
+                // Mobile: sliding window — stream ahead and evict behind to cap memory
+                const LOOKAHEAD = 30;
+                const LOOKBEHIND = 10;
+                const loadTo = Math.min(roundedFrame + LOOKAHEAD, LAST_FRAME);
+                for (let f = roundedFrame; f <= loadTo; f++) loadFrame(f);
+                if (Math.abs(roundedFrame - lastEvictAt) >= 20) {
+                  lastEvictAt = roundedFrame;
+                  const keepFrom = Math.max(HOME_FRAME, roundedFrame - LOOKBEHIND);
+                  for (const [key, bitmap] of frames) {
+                    if (key > HOME_FRAME && key < keepFrom) {
+                      bitmap.close();
+                      frames.delete(key);
+                    }
                   }
                 }
+              } else {
+                // Desktop: small safety lookahead in case batches haven't caught up yet
+                const loadTo = Math.min(roundedFrame + 20, LAST_FRAME);
+                for (let f = roundedFrame; f <= loadTo; f++) loadFrame(f);
               }
 
               if (preciseFrame >= MORPH_WINDOW_START && preciseFrame < MORPH_WINDOW_END) {
@@ -428,6 +434,25 @@ export default function ScrollAnimations() {
                 }
               }
             });
+          }
+
+          // Desktop: begin preloading all scroll frames immediately during the intro
+          // so by the time the user can scroll (~3-4 s), most frames are decoded.
+          if (!isMobile) {
+            let nextBatch = HOME_FRAME + 1;
+            const preloadBatch = () => {
+              const end = Math.min(nextBatch + 40 - 1, LAST_FRAME);
+              for (let f = nextBatch; f <= end; f++) loadFrame(f);
+              nextBatch = end + 1;
+              if (nextBatch <= LAST_FRAME) {
+                "requestIdleCallback" in window
+                  ? requestIdleCallback(preloadBatch)
+                  : setTimeout(preloadBatch, 16);
+              }
+            };
+            "requestIdleCallback" in window
+              ? requestIdleCallback(preloadBatch)
+              : setTimeout(preloadBatch, 16);
           }
 
           // Priority-load the targeted bitmap blend frames. They are used for

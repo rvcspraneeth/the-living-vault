@@ -292,7 +292,7 @@ svg {
   z-index: 50;
   padding: 1rem clamp(1rem, 3vw, 2rem);
   color: var(--cream);
-  transition: background 220ms ease, border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+  transition: background 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
 }
 
 .site-header.is-scrolled {
