@@ -217,7 +217,8 @@ export default function ScrollAnimations() {
           const MORPH_TO_FRAME = 157;
           const MORPH_WINDOW_START = 153;
           const MORPH_WINDOW_END = 160;
-          const frames = new Map<number, HTMLImageElement>();
+          const frames = new Map<number, ImageBitmap>();
+          const pending = new Set<number>();
           const initialFrameCount = HOME_FRAME - FIRST_FRAME + 1;
           let loadedInitialFrames = 0;
           let initialFramesReady = false;
@@ -247,11 +248,11 @@ export default function ScrollAnimations() {
           const drawImageToCanvas = (
             targetCanvas: HTMLCanvasElement,
             targetCtx: CanvasRenderingContext2D,
-            frame: HTMLImageElement,
+            frame: ImageBitmap,
             clear = true,
           ) => {
-            const iw = frame.naturalWidth || 1920;
-            const ih = frame.naturalHeight || 1080;
+            const iw = frame.width || 1920;
+            const ih = frame.height || 1080;
             const cw = targetCanvas.width;
             const ch = targetCanvas.height;
             const scale = Math.max(cw / iw, ch / ih);
@@ -266,7 +267,7 @@ export default function ScrollAnimations() {
           const updateIntroPreview = (frameNumber: number) => {
             if (!introCanvas || !introCtx || autoIntroComplete) return;
             const frame = frames.get(frameNumber);
-            if (!frame?.complete) return;
+            if (!frame) return;
             drawImageToCanvas(introCanvas, introCtx, frame);
           };
 
@@ -274,7 +275,7 @@ export default function ScrollAnimations() {
 
           const drawFrame = (frameNumber: number) => {
             const frame = frames.get(frameNumber);
-            if (!frame?.complete || !ctx) return;
+            if (!frame || !ctx) return;
             drawImageToCanvas(canvas, ctx, frame);
             currentFrame = frameNumber;
           };
@@ -282,7 +283,7 @@ export default function ScrollAnimations() {
           const drawFrameBlend = (fromFrameNumber: number, toFrameNumber: number, progress: number) => {
             const fromFrame = frames.get(fromFrameNumber);
             const toFrame = frames.get(toFrameNumber);
-            if (!fromFrame?.complete || !toFrame?.complete || !ctx) return false;
+            if (!fromFrame || !toFrame || !ctx) return false;
 
             drawImageToCanvas(canvas, ctx, fromFrame);
             ctx.save();
@@ -298,12 +299,18 @@ export default function ScrollAnimations() {
               onLoad?.();
               return;
             }
+            if (pending.has(frameNumber)) return;
+            pending.add(frameNumber);
 
-            const img = new Image();
-            img.decoding = "async";
-            img.src = `/frames/frame_${String(frameNumber).padStart(4, "0")}.jpg`;
-            img.onload = () => onLoad?.();
-            frames.set(frameNumber, img);
+            fetch(`/frames/frame_${String(frameNumber).padStart(4, "0")}.jpg`)
+              .then((r) => r.blob())
+              .then((blob) => createImageBitmap(blob))
+              .then((bitmap) => {
+                pending.delete(frameNumber);
+                frames.set(frameNumber, bitmap);
+                onLoad?.();
+              })
+              .catch(() => pending.delete(frameNumber));
           };
 
           const loadRemainingFrames = () => {
