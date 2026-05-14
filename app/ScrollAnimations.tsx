@@ -205,7 +205,7 @@ export default function ScrollAnimations() {
           },
         });
 
-        // Canvas frame-by-frame scroll video — identical technique to Terminal Industries
+        // Canvas frame-by-frame scroll video
         const videoSection = document.querySelector<HTMLElement>("[data-video-section]");
         const canvas = document.querySelector<HTMLCanvasElement>("[data-hero-canvas]");
 
@@ -227,7 +227,6 @@ export default function ScrollAnimations() {
           let introLeadReady = false;
           let autoIntroStarted = false;
           let autoIntroComplete = false;
-          let remainingFramesStarted = false;
           let currentFrame = FIRST_FRAME;
 
           const sizeCanvases = () => {
@@ -315,34 +314,31 @@ export default function ScrollAnimations() {
               .catch(() => pending.delete(frameNumber));
           };
 
-          const loadRemainingFrames = () => {
-            if (remainingFramesStarted) return;
-            remainingFramesStarted = true;
-            let nextFrame = HOME_FRAME + 1;
-
-            const loadBatch = () => {
-              const batchEnd = Math.min(nextFrame + 11, LAST_FRAME);
-              for (; nextFrame <= batchEnd; nextFrame += 1) {
-                loadFrame(nextFrame);
-              }
-
-              if (nextFrame <= LAST_FRAME) {
-                if (typeof window.requestIdleCallback === "function") {
-                  window.requestIdleCallback(loadBatch, { timeout: 180 });
-                } else {
-                  globalThis.setTimeout(loadBatch, 48);
-                }
-              }
-            };
-
-            loadBatch();
-          };
-
           const startScrollFrameLoop = () => {
             let lastFrame = -1;
             let lastBlend = -1;
+            let lastEvictAt = HOME_FRAME;
+            const LOOKAHEAD = 15;
+            const LOOKBEHIND = 10;
+
             const tick = () => {
               const preciseFrame = HOME_FRAME + captions.totalProgress() * (LAST_FRAME - HOME_FRAME);
+              const roundedFrame = Math.round(preciseFrame);
+
+              // Sliding window: stream frames ahead, evict frames behind to cap memory
+              const loadTo = Math.min(roundedFrame + LOOKAHEAD, LAST_FRAME);
+              for (let f = roundedFrame; f <= loadTo; f++) loadFrame(f);
+              if (Math.abs(roundedFrame - lastEvictAt) >= 20) {
+                lastEvictAt = roundedFrame;
+                const keepFrom = Math.max(HOME_FRAME, roundedFrame - LOOKBEHIND);
+                for (const [key, bitmap] of frames) {
+                  if (key > HOME_FRAME && key < keepFrom) {
+                    bitmap.close();
+                    frames.delete(key);
+                  }
+                }
+              }
+
               if (preciseFrame >= MORPH_WINDOW_START && preciseFrame < MORPH_WINDOW_END) {
                 const rawProgress = (preciseFrame - MORPH_WINDOW_START) / (MORPH_WINDOW_END - MORPH_WINDOW_START);
                 const blendProgress = rawProgress * rawProgress * (3 - 2 * rawProgress);
@@ -352,10 +348,9 @@ export default function ScrollAnimations() {
                   lastFrame = -1;
                 }
               } else {
-                const frameNumber = Math.round(preciseFrame);
-                if (frameNumber !== lastFrame) {
-                  drawFrame(frameNumber);
-                  lastFrame = frameNumber;
+                if (roundedFrame !== lastFrame) {
+                  drawFrame(roundedFrame);
+                  lastFrame = roundedFrame;
                   lastBlend = -1;
                 }
               }
@@ -400,7 +395,11 @@ export default function ScrollAnimations() {
 
               autoIntroComplete = true;
               drawFrame(HOME_FRAME);
-              loadRemainingFrames();
+              // Free intro frames (44–79) — not needed once the hero is visible
+              for (let f = FIRST_FRAME; f < HOME_FRAME; f++) {
+                const bmp = frames.get(f);
+                if (bmp) { bmp.close(); frames.delete(f); }
+              }
             };
 
             requestAnimationFrame(playIntroFrame);
@@ -429,8 +428,7 @@ export default function ScrollAnimations() {
             });
           }
 
-          // Priority-load the targeted bitmap blend frames. They are used for
-          // the widened frame 156→157 transition during the scroll film.
+          // Priority-load the blend frames used in the frame 156→157 transition.
           loadFrame(MORPH_FROM_FRAME);
           loadFrame(MORPH_TO_FRAME);
 
@@ -463,12 +461,12 @@ export default function ScrollAnimations() {
             .to(".hero-caption--1", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(80))
             .to(".hero-caption--1", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(140));
 
-          // Caption 2 — Entering polyhouse | frames 170–245 | progress 0.17–0.245
+          // Caption 2 — Entering polyhouse | frames 170–245
           captions
             .to(".hero-caption--2", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(170))
             .to(".hero-caption--2", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(245));
 
-          // Caption 3 — Lettuce beds | frames 285–390 | progress 0.285–0.39
+          // Caption 3 — Lettuce beds | frames 285–390
           captions
             .to(".hero-caption--3", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(285))
             .to(".hero-caption--3", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(390));
@@ -478,27 +476,27 @@ export default function ScrollAnimations() {
             .to(".hero-caption--4", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(415))
             .to(".hero-caption--4", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(470));
 
-          // Caption 5 — Cilantro rows | frames 485–535, centered on frame 505
+          // Caption 5 — Cilantro rows | frames 485–535
           captions
             .to(".hero-caption--5", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(485))
             .to(".hero-caption--5", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(535));
 
-          // Caption 6 — Tomatoes | frames 560–645 | progress 0.56–0.645
+          // Caption 6 — Tomatoes | frames 560–645
           captions
             .to(".hero-caption--6", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(560))
             .to(".hero-caption--6", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(645));
 
-          // Caption 7 — Bell peppers | frames 665–775 | progress 0.665–0.775
+          // Caption 7 — Bell peppers | frames 665–775
           captions
             .to(".hero-caption--7", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(665))
             .to(".hero-caption--7", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(775));
 
-          // Caption 8 — Ginger, Turmeric, Black pepper | frames 795–935 | progress 0.795–0.935
+          // Caption 8 — Ginger, Turmeric, Black pepper | frames 795–935
           captions
             .to(".hero-caption--8", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(795))
             .to(".hero-caption--8", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(935));
 
-          // Caption 9 — Vanilla | frames 955–999 | progress 0.955–1.00, stays visible
+          // Caption 9 — Vanilla | frames 955–999, stays visible
           captions
             .to(".hero-caption--9", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(955));
 
