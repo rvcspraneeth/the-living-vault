@@ -177,32 +177,84 @@ svg {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.15rem;
+  gap: 1rem;
   pointer-events: none;
   user-select: none;
   will-change: transform, opacity;
 }
 
 .intro__mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, rgba(185, 121, 46, 0.16), transparent 62%);
+  filter: drop-shadow(0 18px 34px rgba(75, 45, 25, 0.14));
+}
+
+.intro__mark-ring,
+.intro__mark-leaf,
+.intro__mark-cut {
+  position: absolute;
   display: block;
-  width: 3.4rem;
-  height: 3.4rem;
-  border: 1px solid rgba(82, 55, 36, 0.26);
+}
+
+.intro__mark-ring {
+  inset: 0;
+  border: 1px solid rgba(82, 55, 36, 0.28);
   border-radius: 50%;
   background:
-    linear-gradient(135deg, transparent 48%, rgba(82, 55, 36, 0.52) 49% 51%, transparent 52%),
-    radial-gradient(circle at 50% 50%, rgba(185, 121, 46, 0.3), transparent 44%);
-  box-shadow: 0 0 28px rgba(185, 121, 46, 0.14);
+    radial-gradient(circle at 36% 34%, rgba(255, 248, 234, 0.82), transparent 18%),
+    radial-gradient(circle at 54% 58%, rgba(185, 121, 46, 0.16), transparent 52%);
+}
+
+.intro__mark-leaf {
+  width: 1.18rem;
+  height: 1.7rem;
+  border: 1px solid rgba(82, 55, 36, 0.5);
+  border-radius: 100% 0 100% 0;
+  transform: rotate(42deg);
+  background: linear-gradient(145deg, rgba(255, 248, 234, 0.72), rgba(185, 121, 46, 0.18));
+}
+
+.intro__mark-cut {
+  width: 3.05rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(82, 55, 36, 0.72), transparent);
+  transform: rotate(-44deg);
+  transform-origin: center;
 }
 
 .intro__name {
+  display: inline-flex;
   font-family: var(--serif);
-  font-size: clamp(1.45rem, 2.8vw, 2.45rem);
+  font-size: clamp(1.7rem, 3vw, 2.8rem);
   font-weight: 700;
   color: var(--ink);
   letter-spacing: 0.01em;
   white-space: nowrap;
   text-align: center;
+  line-height: 1;
+}
+
+.intro__letter {
+  display: inline-block;
+  transform-origin: 50% 80%;
+  will-change: transform, opacity, filter;
+}
+
+.intro__tagline {
+  color: rgba(82, 55, 36, 0.66);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  line-height: 1.3;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  will-change: transform, opacity;
 }
 
 .intro__aperture {
@@ -630,27 +682,33 @@ p {
   text-align: right;
 }
 
-/* 5 — Tomatoes on stakes → left clear of the red cluster close-ups on right */
+/* 5 — Cilantro rows → left clear of the dense foliage */
 .hero-caption--5 {
   bottom: 13%;
   left: 7%;
 }
 
-/* 6 — Bell peppers (red + yellow on right side) → left for contrast */
+/* 6 — Tomatoes on stakes → left clear of the red cluster close-ups on right */
 .hero-caption--6 {
   bottom: 13%;
   left: 7%;
 }
 
-/* 7 — Ginger / Turmeric / Black pepper → right, leaves heavier on both sides */
+/* 7 — Bell peppers (red + yellow on right side) → left for contrast */
 .hero-caption--7 {
+  bottom: 13%;
+  left: 7%;
+}
+
+/* 8 — Ginger / Turmeric / Black pepper → right, leaves heavier on both sides */
+.hero-caption--8 {
   bottom: 13%;
   right: 7%;
   text-align: right;
 }
 
-/* 8 — Vanilla flower (right side, golden light left) → centre to let the shot breathe */
-.hero-caption--8 {
+/* 9 — Vanilla flower (right side, golden light left) → centre to let the shot breathe */
+.hero-caption--9 {
   bottom: 13%;
   left: 50%;
   transform: translateX(-50%);

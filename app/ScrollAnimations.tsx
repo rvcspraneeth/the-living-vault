@@ -57,31 +57,70 @@ export default function ScrollAnimations() {
       const safetyTimer = window.setTimeout(finishIntro, 10000);
 
       // Phase 1: keep the farm film behind the panels while the brand resolves.
-      gsap.set(".intro__mark", { autoAlpha: 0, scale: 0.72, rotate: -34 });
-      gsap.set(".intro__name", { autoAlpha: 0, y: 18 });
+      gsap.set(".intro__mark", { autoAlpha: 0, scale: 0.76, rotate: -18 });
+      gsap.set(".intro__mark-ring", { scale: 0.82, rotate: -28 });
+      gsap.set(".intro__mark-leaf", { autoAlpha: 0, scale: 0.64, rotate: 12, transformOrigin: "50% 50%" });
+      gsap.set(".intro__mark-cut", { scaleX: 0, transformOrigin: "50% 50%" });
+      gsap.set(".intro__letter", { autoAlpha: 0, yPercent: 72, rotateX: -64, filter: "blur(8px)" });
+      gsap.set(".intro__tagline", { autoAlpha: 0, y: 10, letterSpacing: "0.34em" });
       gsap.set(".intro__aperture", { autoAlpha: 1, scale: 1.015, yPercent: 0, borderRadius: 0 });
       gsap.set(".intro__grid", { autoAlpha: 0.55 });
       gsap.set(".intro__brand-block", { autoAlpha: 1, y: 0, scale: 1 });
       gsap.set("[data-header]", { autoAlpha: 0, y: -16 });
+      const introLetterCount = document.querySelectorAll(".intro__panel--top .intro__letter").length;
 
       const introTimeline = gsap.timeline({ paused: true });
 
       introTimeline
-        // Phase 2: logo resolves first, then name lifts into place.
+        // Phase 2: logo resolves first, then the name opens letter by letter.
         .to(".intro__mark", {
           autoAlpha: 1,
           scale: 1,
           rotate: 0,
-          duration: 0.78,
-          ease: "power3.out",
-          delay: 0.18,
+          duration: 0.74,
+          ease: "back.out(1.35)",
+          delay: 0.16,
         })
-        .to(".intro__name", {
+        .to(".intro__mark-ring", {
+          scale: 1,
+          rotate: 0,
+          duration: 0.86,
+          ease: "power3.out",
+        }, "<")
+        .to(".intro__mark-leaf", {
+          autoAlpha: 1,
+          scale: 1,
+          rotate: 42,
+          duration: 0.66,
+          ease: "power3.out",
+        }, "<0.14")
+        .to(".intro__mark-cut", {
+          scaleX: 1,
+          duration: 0.58,
+          ease: "power2.inOut",
+        }, "<0.2");
+
+      Array.from({ length: introLetterCount }).forEach((_, index) => {
+        introTimeline.to(`[data-intro-letter="${index}"]`, {
+            autoAlpha: 1,
+            yPercent: 0,
+            rotateX: 0,
+            filter: "blur(0px)",
+            duration: 0.68,
+            ease: "power3.out",
+          },
+          index === 0 ? "<0.18" : "<0.035",
+        );
+      });
+
+      introTimeline
+        .to(".intro__tagline", {
           autoAlpha: 1,
           y: 0,
-          duration: 0.74,
+          letterSpacing: "0.22em",
+          duration: 0.62,
           ease: "power2.out",
-        }, "<0.22")
+        })
         .to(".intro__brand-block", {
           y: -10,
           scale: 0.985,
@@ -174,6 +213,10 @@ export default function ScrollAnimations() {
           const FIRST_FRAME = 44;
           const HOME_FRAME = 80;
           const LAST_FRAME = 999;
+          const MORPH_FROM_FRAME = 156;
+          const MORPH_TO_FRAME = 157;
+          const MORPH_WINDOW_START = 153;
+          const MORPH_WINDOW_END = 160;
           const frames = new Map<number, HTMLImageElement>();
           const initialFrameCount = HOME_FRAME - FIRST_FRAME + 1;
           let loadedInitialFrames = 0;
@@ -205,6 +248,7 @@ export default function ScrollAnimations() {
             targetCanvas: HTMLCanvasElement,
             targetCtx: CanvasRenderingContext2D,
             frame: HTMLImageElement,
+            clear = true,
           ) => {
             const iw = frame.naturalWidth || 1920;
             const ih = frame.naturalHeight || 1080;
@@ -215,7 +259,7 @@ export default function ScrollAnimations() {
             const y = (ch - ih * scale) / 2;
             targetCtx.imageSmoothingEnabled = true;
             targetCtx.imageSmoothingQuality = "high";
-            targetCtx.clearRect(0, 0, cw, ch);
+            if (clear) targetCtx.clearRect(0, 0, cw, ch);
             targetCtx.drawImage(frame, x, y, iw * scale, ih * scale);
           };
 
@@ -233,6 +277,20 @@ export default function ScrollAnimations() {
             if (!frame?.complete || !ctx) return;
             drawImageToCanvas(canvas, ctx, frame);
             currentFrame = frameNumber;
+          };
+
+          const drawFrameBlend = (fromFrameNumber: number, toFrameNumber: number, progress: number) => {
+            const fromFrame = frames.get(fromFrameNumber);
+            const toFrame = frames.get(toFrameNumber);
+            if (!fromFrame?.complete || !toFrame?.complete || !ctx) return false;
+
+            drawImageToCanvas(canvas, ctx, fromFrame);
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, Math.min(1, progress));
+            drawImageToCanvas(canvas, ctx, toFrame, false);
+            ctx.restore();
+            currentFrame = progress < 0.5 ? fromFrameNumber : toFrameNumber;
+            return true;
           };
 
           const loadFrame = (frameNumber: number, onLoad?: () => void) => {
@@ -273,11 +331,24 @@ export default function ScrollAnimations() {
 
           const startScrollFrameLoop = () => {
             let lastFrame = -1;
+            let lastBlend = -1;
             const tick = () => {
-              const frameNumber = HOME_FRAME + Math.round(captions.totalProgress() * (LAST_FRAME - HOME_FRAME));
-              if (frameNumber !== lastFrame) {
-                drawFrame(frameNumber);
-                lastFrame = frameNumber;
+              const preciseFrame = HOME_FRAME + captions.totalProgress() * (LAST_FRAME - HOME_FRAME);
+              if (preciseFrame >= MORPH_WINDOW_START && preciseFrame < MORPH_WINDOW_END) {
+                const rawProgress = (preciseFrame - MORPH_WINDOW_START) / (MORPH_WINDOW_END - MORPH_WINDOW_START);
+                const blendProgress = rawProgress * rawProgress * (3 - 2 * rawProgress);
+                const blendBucket = Math.round(blendProgress * 48);
+                if (blendBucket !== lastBlend && drawFrameBlend(MORPH_FROM_FRAME, MORPH_TO_FRAME, blendProgress)) {
+                  lastBlend = blendBucket;
+                  lastFrame = -1;
+                }
+              } else {
+                const frameNumber = Math.round(preciseFrame);
+                if (frameNumber !== lastFrame) {
+                  drawFrame(frameNumber);
+                  lastFrame = frameNumber;
+                  lastBlend = -1;
+                }
               }
               rafId = requestAnimationFrame(tick);
             };
@@ -349,6 +420,11 @@ export default function ScrollAnimations() {
             });
           }
 
+          // Priority-load the targeted bitmap blend frames. They are used for
+          // the widened frame 156→157 transition during the scroll film.
+          loadFrame(MORPH_FROM_FRAME);
+          loadFrame(MORPH_TO_FRAME);
+
           // Caption timeline — positions derived from per-frame analysis of Hero_vault.mp4
           // scroll progress maps frame 80–999, after the automatic homepage
           // lead-in plays frames 44–80.
@@ -360,7 +436,8 @@ export default function ScrollAnimations() {
           //   050–200  : aerial exterior — multiple polyhouses at golden sunrise
           //   200–280  : entering / walking into the tunnel
           //   280–400  : lettuce beds
-          //   400–550  : kale rows
+          //   400–470  : kale rows
+          //   470–535  : cilantro rows
           //   550–650  : tomatoes on stakes
           //   650–780  : bell peppers (red + yellow)
           //   780–870  : ginger / turmeric (broad flat leaves)
@@ -387,29 +464,34 @@ export default function ScrollAnimations() {
             .to(".hero-caption--3", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(285))
             .to(".hero-caption--3", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(390));
 
-          // Caption 4 — Kale rows | frames 415–530 | progress 0.415–0.53
+          // Caption 4 — Kale rows | frames 415–470
           captions
             .to(".hero-caption--4", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(415))
-            .to(".hero-caption--4", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(530));
+            .to(".hero-caption--4", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(470));
 
-          // Caption 5 — Tomatoes | frames 560–645 | progress 0.56–0.645
+          // Caption 5 — Cilantro rows | frames 485–535, centered on frame 505
           captions
-            .to(".hero-caption--5", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(560))
-            .to(".hero-caption--5", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(645));
+            .to(".hero-caption--5", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(485))
+            .to(".hero-caption--5", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(535));
 
-          // Caption 6 — Bell peppers | frames 665–775 | progress 0.665–0.775
+          // Caption 6 — Tomatoes | frames 560–645 | progress 0.56–0.645
           captions
-            .to(".hero-caption--6", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(665))
-            .to(".hero-caption--6", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(775));
+            .to(".hero-caption--6", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(560))
+            .to(".hero-caption--6", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(645));
 
-          // Caption 7 — Ginger, Turmeric, Black pepper | frames 795–935 | progress 0.795–0.935
+          // Caption 7 — Bell peppers | frames 665–775 | progress 0.665–0.775
           captions
-            .to(".hero-caption--7", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(795))
-            .to(".hero-caption--7", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(935));
+            .to(".hero-caption--7", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(665))
+            .to(".hero-caption--7", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(775));
 
-          // Caption 8 — Vanilla | frames 955–999 | progress 0.955–1.00, stays visible
+          // Caption 8 — Ginger, Turmeric, Black pepper | frames 795–935 | progress 0.795–0.935
           captions
-            .to(".hero-caption--8", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(955));
+            .to(".hero-caption--8", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(795))
+            .to(".hero-caption--8", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(935));
+
+          // Caption 9 — Vanilla | frames 955–999 | progress 0.955–1.00, stays visible
+          captions
+            .to(".hero-caption--9", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(955));
 
           // CSS sticky handles layout — ScrollTrigger tracks progress through the 800vh section
           ScrollTrigger.create({

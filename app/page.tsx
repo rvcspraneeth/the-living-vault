@@ -34,8 +34,19 @@ export default function Home() {
           <div className="intro__inner">
             <div className="intro__grid" />
             <div className="intro__brand-block">
-              <span className="intro__mark" />
-              <span className="intro__name">The Living Vault</span>
+              <span className="intro__mark" aria-hidden="true">
+                <span className="intro__mark-ring" />
+                <span className="intro__mark-leaf" />
+                <span className="intro__mark-cut" />
+              </span>
+              <span className="intro__name" aria-label="The Living Vault">
+                {"The Living Vault".split("").map((letter, index) => (
+                  <span className="intro__letter" data-intro-letter={index} key={`${letter}-${index}`}>
+                    {letter === " " ? "\u00a0" : letter}
+                  </span>
+                ))}
+              </span>
+              <span className="intro__tagline">Protected harvests, opened with care</span>
             </div>
           </div>
         </div>
@@ -43,8 +54,19 @@ export default function Home() {
           <div className="intro__inner">
             <div className="intro__grid" />
             <div className="intro__brand-block">
-              <span className="intro__mark" />
-              <span className="intro__name">The Living Vault</span>
+              <span className="intro__mark" aria-hidden="true">
+                <span className="intro__mark-ring" />
+                <span className="intro__mark-leaf" />
+                <span className="intro__mark-cut" />
+              </span>
+              <span className="intro__name" aria-label="The Living Vault">
+                {"The Living Vault".split("").map((letter, index) => (
+                  <span className="intro__letter" data-intro-letter={index} key={`${letter}-${index}`}>
+                    {letter === " " ? "\u00a0" : letter}
+                  </span>
+                ))}
+              </span>
+              <span className="intro__tagline">Protected harvests, opened with care</span>
             </div>
           </div>
         </div>
@@ -96,14 +118,15 @@ export default function Home() {
             <div className="hero__mist" />
             <div className="hero__light" />
             <div className="hero-captions" aria-hidden="true">
-              <p className="hero-caption hero-caption--1">Five polyhouses. One standard of care.</p>
+              <p className="hero-caption hero-caption--1">Protected polyhouses. One standard of care.</p>
               <p className="hero-caption hero-caption--2">Controlled from inside. Built around the crop.</p>
               <p className="hero-caption hero-caption--3">Lettuce and spinach. Clean crunch, harvested at their best.</p>
               <p className="hero-caption hero-caption--4">Kale. Curly, structured, cut at colour peak.</p>
-              <p className="hero-caption hero-caption--5">Tomatoes. Vine-ripened and heavy with colour.</p>
-              <p className="hero-caption hero-caption--6">Bell peppers — red and yellow. Glossy fruit buyers notice first.</p>
-              <p className="hero-caption hero-caption--7">Turmeric. Ginger. Black pepper. Roots and vines grown for aroma.</p>
-              <p className="hero-caption hero-caption--8">Vanilla. Hand-pollinated. Slow-cured.</p>
+              <p className="hero-caption hero-caption--5">Cilantro. Bright, aromatic bunches cut for clean finish.</p>
+              <p className="hero-caption hero-caption--6">Tomatoes. Vine-ripened and heavy with colour.</p>
+              <p className="hero-caption hero-caption--7">Bell peppers — red and yellow. Glossy fruit buyers notice first.</p>
+              <p className="hero-caption hero-caption--8">Turmeric. Ginger. Black pepper. Roots and vines grown for aroma.</p>
+              <p className="hero-caption hero-caption--9">Vanilla. Hand-pollinated. Slow-cured.</p>
             </div>
           </div>
           <div className="hero__content reveal">
