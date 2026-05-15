@@ -30,138 +30,7 @@ export default function ScrollAnimations() {
 
     let context: gsap.Context | undefined;
     let rafId: number | null = null;
-    let revealIntroPanels: ((onComplete?: () => void) => void) | undefined;
     const cleanupCallbacks: Array<() => void> = [];
-
-    // Split-panel intro animation
-    const introEl = document.querySelector<HTMLElement>("[data-intro]");
-    const introTop = document.querySelector<HTMLElement>(".intro__panel--top");
-    const introBottom = document.querySelector<HTMLElement>(".intro__panel--bottom");
-    const introAperture = document.querySelector<HTMLElement>(".intro__aperture");
-    const introCanvas = document.querySelector<HTMLCanvasElement>("[data-intro-canvas]");
-
-    if (introEl && introTop && introBottom && introAperture) {
-      document.body.style.overflow = "hidden";
-
-      const finishIntro = () => {
-        introEl.style.display = "none";
-        document.body.style.overflow = "";
-      };
-
-      // Safety valve — if something stalls the animation, force-complete after 10s.
-      const safetyTimer = window.setTimeout(finishIntro, 10000);
-
-      // Phase 1: keep the farm film behind the panels while the brand resolves.
-      gsap.set(".intro__mark", { autoAlpha: 0, scale: 0.76, rotate: -18 });
-      gsap.set(".intro__mark-ring", { scale: 0.82, rotate: -28 });
-      gsap.set(".intro__mark-leaf", { autoAlpha: 0, scale: 0.64, rotate: 12, transformOrigin: "50% 50%" });
-      gsap.set(".intro__mark-cut", { scaleX: 0, transformOrigin: "50% 50%" });
-      gsap.set(".intro__letter", { autoAlpha: 0, yPercent: 72, rotateX: -64, filter: "blur(8px)" });
-      gsap.set(".intro__tagline", { autoAlpha: 0, y: 10, letterSpacing: "0.34em" });
-      gsap.set(".intro__aperture", { autoAlpha: 1, scale: 1.015, yPercent: 0, borderRadius: 0 });
-      gsap.set(".intro__grid", { autoAlpha: 0.55 });
-      gsap.set(".intro__brand-block", { autoAlpha: 1, y: 0, scale: 1 });
-      gsap.set("[data-header]", { autoAlpha: 0, y: -16 });
-      const introLetterCount = document.querySelectorAll(".intro__panel--top .intro__letter").length;
-
-      const introTimeline = gsap.timeline({ paused: true });
-
-      introTimeline
-        // Phase 2: logo resolves first, then the name opens letter by letter.
-        .to(".intro__mark", {
-          autoAlpha: 1,
-          scale: 1,
-          rotate: 0,
-          duration: 0.74,
-          ease: "back.out(1.35)",
-          delay: 0.16,
-        })
-        .to(".intro__mark-ring", {
-          scale: 1,
-          rotate: 0,
-          duration: 0.86,
-          ease: "power3.out",
-        }, "<")
-        .to(".intro__mark-leaf", {
-          autoAlpha: 1,
-          scale: 1,
-          rotate: 42,
-          duration: 0.66,
-          ease: "power3.out",
-        }, "<0.14")
-        .to(".intro__mark-cut", {
-          scaleX: 1,
-          duration: 0.58,
-          ease: "power2.inOut",
-        }, "<0.2");
-
-      Array.from({ length: introLetterCount }).forEach((_, index) => {
-        introTimeline.to(`[data-intro-letter="${index}"]`, {
-            autoAlpha: 1,
-            yPercent: 0,
-            rotateX: 0,
-            filter: "blur(0px)",
-            duration: 0.68,
-            ease: "power3.out",
-          },
-          index === 0 ? "<0.18" : "<0.035",
-        );
-      });
-
-      introTimeline
-        .to(".intro__tagline", {
-          autoAlpha: 1,
-          y: 0,
-          letterSpacing: "0.22em",
-          duration: 0.62,
-          ease: "power2.out",
-        })
-        .to(".intro__brand-block", {
-          y: -10,
-          scale: 0.985,
-          duration: 0.54,
-          ease: "power2.inOut",
-        }, "+=0.48");
-
-      introTimeline.play();
-
-      revealIntroPanels = (onComplete) => {
-        const finishTimeline = gsap.timeline({
-          onComplete: () => {
-            window.clearTimeout(safetyTimer);
-            finishIntro();
-            onComplete?.();
-          },
-        });
-
-        finishTimeline
-        // Final phase: brand clears and the top/bottom panels reveal the farm film.
-        .to(".intro__brand-block", {
-          autoAlpha: 0,
-          y: -32,
-          scale: 0.94,
-          duration: 0.44,
-          ease: "power2.in",
-        }, 0)
-        .to(".intro__grid", { autoAlpha: 0, duration: 0.58, ease: "power2.out" }, 0)
-        .to(".intro__aperture", {
-          scale: 1,
-          borderRadius: 0,
-          duration: 2.45,
-          ease: "power2.out",
-        }, 0)
-        .to(
-          [introTop, introBottom],
-          {
-            yPercent: (i: number) => (i === 0 ? -100 : 100),
-            duration: 2.45,
-            ease: "power4.inOut",
-          },
-          0
-        )
-        .set(".intro__aperture", { autoAlpha: 1, scale: 1 });
-      };
-    }
 
     waitForDynamicContent(() => {
       context = gsap.context(() => {
@@ -197,12 +66,10 @@ export default function ScrollAnimations() {
 
         if (videoSection && canvas) {
           const ctx = canvas.getContext("2d");
-          const introCtx = introCanvas?.getContext("2d") ?? null;
 
           // Frame range — placeholder until time-lapse footage is shot.
           // Final spec: ~400 frames at 60fps, locked-exterior sunrise→night.
-          const FIRST_FRAME = 44;
-          const HOME_FRAME = 120;
+          const FIRST_FRAME = 120;
           const LAST_FRAME = 444;
 
           const frames = new Map<number, HTMLImageElement>();
@@ -210,12 +77,6 @@ export default function ScrollAnimations() {
           const pending = new Set<number>();
           const boostedPending = new Set<number>();
           const pendingCallbacks = new Map<number, Array<() => void>>();
-          const initialFrameCount = HOME_FRAME - FIRST_FRAME + 1;
-          let loadedInitialFrames = 0;
-          let initialFramesReady = false;
-          let introLeadReady = false;
-          let autoIntroStarted = false;
-          let autoIntroComplete = false;
           let currentFrame = FIRST_FRAME;
 
           const isMobile = window.innerWidth <= 768;
@@ -228,13 +89,6 @@ export default function ScrollAnimations() {
             canvas.height = height;
             canvas.style.width = `${window.innerWidth}px`;
             canvas.style.height = `${window.innerHeight}px`;
-
-            if (introCanvas) {
-              introCanvas.width = width;
-              introCanvas.height = height;
-              introCanvas.style.width = `${window.innerWidth}px`;
-              introCanvas.style.height = `${window.innerHeight}px`;
-            }
           };
 
           const drawImageToCanvas = (
@@ -253,13 +107,6 @@ export default function ScrollAnimations() {
             targetCtx.imageSmoothingQuality = isMobile ? "medium" : "high";
             targetCtx.clearRect(0, 0, cw, ch);
             targetCtx.drawImage(img, x, y, iw * scale, ih * scale);
-          };
-
-          const updateIntroPreview = (frameNumber: number) => {
-            if (!introCanvas || !introCtx || autoIntroComplete) return;
-            const img = frames.get(frameNumber);
-            if (!img) return;
-            drawImageToCanvas(introCanvas, introCtx, img);
           };
 
           sizeCanvases();
@@ -438,7 +285,7 @@ export default function ScrollAnimations() {
 
           const startScrollFrameLoop = () => {
             let lastFrame = -1;
-            let lastEvictAt = HOME_FRAME;
+            let lastEvictAt = FIRST_FRAME;
             let taglineVisible = false;
             let endlineVisible = false;
 
@@ -454,16 +301,15 @@ export default function ScrollAnimations() {
             const tick = () => {
               // Read scrollY directly — zero lag, same approach as TI.
               const rawProgress = Math.max(0, Math.min(1, (window.scrollY - scrollStart) / Math.max(1, scrollEnd - scrollStart)));
-              const preciseFrame = HOME_FRAME + rawProgress * (LAST_FRAME - HOME_FRAME);
+              const preciseFrame = FIRST_FRAME + rawProgress * (LAST_FRAME - FIRST_FRAME);
               const roundedFrame = Math.round(preciseFrame);
 
               // Tagline visible from scroll start through 85% — fades out so endline can land cleanly
-              const showTagline = rawProgress > 0.02 && rawProgress < 0.85;
+              const showTagline = rawProgress < 0.85;
               if (showTagline !== taglineVisible && taglineEl) {
                 taglineVisible = showTagline;
                 taglineEl.classList.toggle("hero-caption--visible", showTagline);
               }
-              // Endline appears at the very end (90%+) and stays
               const showEndline = rawProgress > 0.9;
               if (showEndline !== endlineVisible && endlineEl) {
                 endlineVisible = showEndline;
@@ -480,9 +326,9 @@ export default function ScrollAnimations() {
                 }
                 if (Math.abs(roundedFrame - lastEvictAt) >= 20) {
                   lastEvictAt = roundedFrame;
-                  const keepFrom = Math.max(HOME_FRAME, roundedFrame - LOOKBEHIND);
+                  const keepFrom = Math.max(FIRST_FRAME, roundedFrame - LOOKBEHIND);
                   for (const [key, url] of blobUrls) {
-                    if (key > HOME_FRAME && key < keepFrom) {
+                    if (key > FIRST_FRAME && key < keepFrom) {
                       URL.revokeObjectURL(url);
                       blobUrls.delete(key);
                       frames.delete(key);
@@ -491,7 +337,7 @@ export default function ScrollAnimations() {
                 }
               } else {
                 const loadTo = Math.min(roundedFrame + 28, LAST_FRAME);
-                for (let f = Math.max(HOME_FRAME, roundedFrame - 2); f <= loadTo; f++) {
+                for (let f = Math.max(FIRST_FRAME, roundedFrame - 2); f <= loadTo; f++) {
                   loadFrame(f, undefined, f <= roundedFrame + 8 ? 10 : 5);
                 }
               }
@@ -506,96 +352,34 @@ export default function ScrollAnimations() {
             rafId = requestAnimationFrame(tick);
           };
 
-          const startAutoIntro = () => {
-            if (autoIntroStarted) return;
-            if (!initialFramesReady || !introLeadReady) return;
-            autoIntroStarted = true;
-
-            let lastIntroFrame = -1;
-            let panelRevealComplete = false;
-            let frameIntroComplete = false;
-            let heroStarted = false;
-            const introStart = performance.now();
-            const introDuration = 2450;
-
-            const startHeroAfterIntro = () => {
-              if (heroStarted || !panelRevealComplete || !frameIntroComplete) return;
-              heroStarted = true;
-              revealHeader();
-              startScrollFrameLoop();
-            };
-
-            revealIntroPanels?.(() => {
-              panelRevealComplete = true;
-              startHeroAfterIntro();
-            });
-
-            const playIntroFrame = (now: number) => {
-              const progress = Math.min(1, (now - introStart) / introDuration);
-              const eased = progress < 0.5
-                ? 4 * progress * progress * progress
-                : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-              const frameNumber = Math.min(
-                HOME_FRAME,
-                FIRST_FRAME + Math.floor(eased * (initialFrameCount - 1)),
-              );
-
-              if (frameNumber !== lastIntroFrame) {
-                drawFrame(frameNumber);
-                updateIntroPreview(frameNumber);
-                lastIntroFrame = frameNumber;
-              }
-
-              if (progress < 1) {
-                requestAnimationFrame(playIntroFrame);
-                return;
-              }
-
-              autoIntroComplete = true;
-              drawFrame(HOME_FRAME);
-              updateIntroPreview(HOME_FRAME);
-              frameIntroComplete = true;
-              for (let f = FIRST_FRAME; f < HOME_FRAME; f++) {
-                const url = blobUrls.get(f);
-                if (url) URL.revokeObjectURL(url);
-                blobUrls.delete(f);
-                frames.delete(f);
-              }
-              startHeroAfterIntro();
-            };
-
-            requestAnimationFrame(playIntroFrame);
+          // Start the first frame as soon as it lands, then start the scroll loop.
+          // Tagline fades in via CSS (mounted with --visible class once first frame is ready).
+          let scrollLoopStarted = false;
+          const startWhenReady = () => {
+            if (scrollLoopStarted) return;
+            scrollLoopStarted = true;
+            revealHeader();
+            // Reveal the tagline a beat after first paint — feels like TI's clean load
+            window.setTimeout(() => {
+              taglineEl?.classList.add("hero-caption--visible");
+            }, 200);
+            startScrollFrameLoop();
           };
 
-          window.setTimeout(() => {
-            introLeadReady = true;
-            startAutoIntro();
-          }, 1700);
+          loadFrame(FIRST_FRAME, () => {
+            drawFrame(FIRST_FRAME);
+            startWhenReady();
+          }, 20);
 
-          // Skip black lead-in frames 1–43. Load only the opening frames first
-          // so the cinematic reveal is not competing with the full scroll film.
-          for (let i = FIRST_FRAME; i <= HOME_FRAME; i++) {
-            loadFrame(i, () => {
-              if (i === FIRST_FRAME) {
-                drawFrame(FIRST_FRAME);
-                updateIntroPreview(FIRST_FRAME);
-              }
-              if (i >= FIRST_FRAME && i <= HOME_FRAME) {
-                loadedInitialFrames += 1;
-                if (loadedInitialFrames === initialFrameCount) {
-                  initialFramesReady = true;
-                  startAutoIntro();
-                  // Initial frames are in — then enqueue the rest as low-priority
-                  // background work so active scroll frames can jump the queue.
-                  if (!isMobile) {
-                    window.setTimeout(() => {
-                      for (let f = HOME_FRAME + 1; f <= LAST_FRAME; f += 30) loadFrame(f, undefined, 1);
-                      for (let f = HOME_FRAME + 1; f <= LAST_FRAME; f++) loadFrame(f);
-                    }, 350);
-                  }
-                }
-              }
-            }, 20);
+          // Eagerly prime the active scroll neighborhood
+          for (let f = FIRST_FRAME + 1; f <= Math.min(FIRST_FRAME + 30, LAST_FRAME); f++) {
+            loadFrame(f, undefined, 10);
+          }
+          if (!isMobile) {
+            window.setTimeout(() => {
+              for (let f = FIRST_FRAME + 31; f <= LAST_FRAME; f += 30) loadFrame(f, undefined, 1);
+              for (let f = FIRST_FRAME + 31; f <= LAST_FRAME; f++) loadFrame(f);
+            }, 350);
           }
 
           let lastResizeWidth = window.innerWidth;
@@ -604,7 +388,6 @@ export default function ScrollAnimations() {
             lastResizeWidth = window.innerWidth;
             sizeCanvases();
             drawFrame(currentFrame);
-            updateIntroPreview(currentFrame);
           };
           window.addEventListener("resize", handleResize);
 

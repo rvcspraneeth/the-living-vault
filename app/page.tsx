@@ -17,52 +17,6 @@ export default function Home() {
         Skip to content
       </a>
 
-      <div className="intro" data-intro aria-hidden="true">
-        <div className="intro__panel intro__panel--top">
-          <div className="intro__inner">
-            <div className="intro__grid" />
-            <div className="intro__brand-block">
-              <span className="intro__mark" aria-hidden="true">
-                <span className="intro__mark-ring" />
-                <span className="intro__mark-leaf" />
-                <span className="intro__mark-cut" />
-              </span>
-              <span className="intro__name" aria-label="The Living Vault">
-                {"The Living Vault".split("").map((letter, index) => (
-                  <span className="intro__letter" data-intro-letter={index} key={`${letter}-${index}`}>
-                    {letter === " " ? "\u00a0" : letter}
-                  </span>
-                ))}
-              </span>
-              <span className="intro__tagline">Protected harvests, opened with care</span>
-            </div>
-          </div>
-        </div>
-        <div className="intro__panel intro__panel--bottom">
-          <div className="intro__inner">
-            <div className="intro__grid" />
-            <div className="intro__brand-block">
-              <span className="intro__mark" aria-hidden="true">
-                <span className="intro__mark-ring" />
-                <span className="intro__mark-leaf" />
-                <span className="intro__mark-cut" />
-              </span>
-              <span className="intro__name" aria-label="The Living Vault">
-                {"The Living Vault".split("").map((letter, index) => (
-                  <span className="intro__letter" data-intro-letter={index} key={`${letter}-${index}`}>
-                    {letter === " " ? "\u00a0" : letter}
-                  </span>
-                ))}
-              </span>
-              <span className="intro__tagline">Protected harvests, opened with care</span>
-            </div>
-          </div>
-        </div>
-        <div className="intro__aperture" aria-hidden="true">
-          <canvas className="intro__canvas" data-intro-canvas />
-        </div>
-      </div>
-
       <header className="site-header" data-header>
         <nav className="nav" aria-label="Primary navigation">
           <a className="brand" href="#top" aria-label="The Living Vault home">
