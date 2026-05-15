@@ -15,6 +15,15 @@ export default function Home() {
         Skip to content
       </a>
 
+      <div className="intro" data-intro aria-hidden="true">
+        <div className="intro__panel intro__panel--top" />
+        <div className="intro__panel intro__panel--bottom" />
+        <div className="intro__title" data-intro-title>
+          <span className="intro__mark" aria-hidden="true" />
+          <span className="intro__name">The Living Vault</span>
+        </div>
+      </div>
+
       <header className="site-header" data-header>
         <nav className="nav" aria-label="Primary navigation">
           <a className="brand" href="#top" aria-label="The Living Vault home">
@@ -58,11 +67,15 @@ export default function Home() {
         </section>
         </div>
 
-        <section className="promise section-pad reveal" aria-labelledby="promise-title">
+        <section className="promise section-pad" aria-labelledby="promise-title">
           <h2 id="promise-title" className="promise__line">
-            Outside, weather decides.
+            {"Outside, weather decides.".split(" ").map((w) => (
+              <span className="promise__word" key={`o-${w}`}>{w}&nbsp;</span>
+            ))}
             <br />
-            Inside, we do.
+            {"Inside, we do.".split(" ").map((w) => (
+              <span className="promise__word" key={`i-${w}`}>{w}&nbsp;</span>
+            ))}
           </h2>
         </section>
 

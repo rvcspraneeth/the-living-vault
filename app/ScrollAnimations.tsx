@@ -30,7 +30,46 @@ export default function ScrollAnimations() {
 
     let context: gsap.Context | undefined;
     let rafId: number | null = null;
+    let panelsRevealComplete = false;
+    let waitForPanels: ((cb: () => void) => void) | undefined;
     const cleanupCallbacks: Array<() => void> = [];
+
+    // Minimal load intro — title fades in briefly, then panels slide apart.
+    // No elaborate brand-mark animation. Lock body scroll until panels open.
+    const introEl = document.querySelector<HTMLElement>("[data-intro]");
+    const introTitle = document.querySelector<HTMLElement>("[data-intro-title]");
+    const introTop = document.querySelector<HTMLElement>(".intro__panel--top");
+    const introBottom = document.querySelector<HTMLElement>(".intro__panel--bottom");
+
+    if (introEl && introTitle && introTop && introBottom) {
+      document.body.style.overflow = "hidden";
+      const panelWaiters: Array<() => void> = [];
+      waitForPanels = (cb) => {
+        if (panelsRevealComplete) cb();
+        else panelWaiters.push(cb);
+      };
+
+      const safety = window.setTimeout(() => finishPanels(), 6000);
+      function finishPanels() {
+        if (panelsRevealComplete) return;
+        panelsRevealComplete = true;
+        window.clearTimeout(safety);
+        introEl.style.display = "none";
+        document.body.style.overflow = "";
+        panelWaiters.forEach((cb) => cb());
+        panelWaiters.length = 0;
+      }
+
+      const tl = gsap.timeline();
+      tl.fromTo(introTitle,
+        { autoAlpha: 0, y: 14 },
+        { autoAlpha: 1, y: 0, duration: 0.7, ease: "power2.out", delay: 0.15 },
+      )
+      .to(introTitle, { autoAlpha: 0, y: -10, duration: 0.4, ease: "power2.in" }, "+=0.7")
+      .to(introTop, { yPercent: -100, duration: 1.15, ease: "power4.inOut" }, "<0.05")
+      .to(introBottom, { yPercent: 100, duration: 1.15, ease: "power4.inOut" }, "<")
+      .call(finishPanels);
+    }
 
     waitForDynamicContent(() => {
       context = gsap.context(() => {
@@ -56,6 +95,22 @@ export default function ScrollAnimations() {
           },
         });
 
+        // Promise section — word-by-word scrub reveal (TI-style)
+        const promiseWords = gsap.utils.toArray<HTMLElement>(".promise__word");
+        if (promiseWords.length) {
+          gsap.to(promiseWords, {
+            color: "var(--ink)",
+            stagger: 0.08,
+            ease: "none",
+            scrollTrigger: {
+              trigger: ".promise",
+              start: "top 80%",
+              end: "bottom 40%",
+              scrub: 0.6,
+            },
+          });
+        }
+
         // Scroll video — same architecture as terminal-industries.com:
         //   - Worker fetches blobs only
         //   - Main thread creates blob URL + HTMLImageElement per frame
@@ -69,7 +124,7 @@ export default function ScrollAnimations() {
 
           // Frame range — placeholder until time-lapse footage is shot.
           // Final spec: ~400 frames at 60fps, locked-exterior sunrise→night.
-          const FIRST_FRAME = 120;
+          const FIRST_FRAME = 44;
           const LAST_FRAME = 444;
 
           const frames = new Map<number, HTMLImageElement>();
@@ -352,23 +407,27 @@ export default function ScrollAnimations() {
             rafId = requestAnimationFrame(tick);
           };
 
-          // Start the first frame as soon as it lands, then start the scroll loop.
-          // Tagline fades in via CSS (mounted with --visible class once first frame is ready).
+          // Start the first frame as soon as it lands, then start the scroll loop —
+          // but only after the load-intro panels finish opening.
           let scrollLoopStarted = false;
+          let firstFrameReady = false;
           const startWhenReady = () => {
             if (scrollLoopStarted) return;
+            if (!firstFrameReady) return;
             scrollLoopStarted = true;
             revealHeader();
-            // Reveal the tagline a beat after first paint — feels like TI's clean load
+            // Tagline fades in a beat after panels finish opening
             window.setTimeout(() => {
               taglineEl?.classList.add("hero-caption--visible");
-            }, 200);
+            }, 250);
             startScrollFrameLoop();
           };
 
           loadFrame(FIRST_FRAME, () => {
             drawFrame(FIRST_FRAME);
-            startWhenReady();
+            firstFrameReady = true;
+            if (waitForPanels) waitForPanels(startWhenReady);
+            else startWhenReady();
           }, 20);
 
           // Eagerly prime the active scroll neighborhood
