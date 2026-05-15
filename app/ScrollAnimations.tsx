@@ -124,7 +124,7 @@ export default function ScrollAnimations() {
 
           // Frame range — placeholder until time-lapse footage is shot.
           // Final spec: ~400 frames at 60fps, locked-exterior sunrise→night.
-          const FIRST_FRAME = 44;
+          const FIRST_FRAME = 54;
           const LAST_FRAME = 444;
 
           const frames = new Map<number, HTMLImageElement>();
