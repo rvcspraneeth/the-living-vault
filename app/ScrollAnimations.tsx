@@ -42,6 +42,13 @@ export default function ScrollAnimations() {
     const introBottom = document.querySelector<HTMLElement>(".intro__panel--bottom");
 
     if (introEl && introTitle && introTop && introBottom) {
+      // Capture narrowed refs so closures below can use them without
+      // re-running null checks (function-declaration scope drops narrowing).
+      const intro = introEl;
+      const title = introTitle;
+      const top = introTop;
+      const bottom = introBottom;
+
       // Stop the browser auto-restoring scrollY from the previous session.
       // Otherwise the page snaps mid-hero the moment intro panels open.
       if ("scrollRestoration" in history) {
@@ -55,25 +62,25 @@ export default function ScrollAnimations() {
         else panelWaiters.push(cb);
       };
 
-      const safety = window.setTimeout(() => finishPanels(), 6000);
-      function finishPanels() {
+      const finishPanels = () => {
         if (panelsRevealComplete) return;
         panelsRevealComplete = true;
         window.clearTimeout(safety);
-        introEl.style.display = "none";
+        intro.style.display = "none";
         document.body.style.overflow = "";
         panelWaiters.forEach((cb) => cb());
         panelWaiters.length = 0;
-      }
+      };
+      const safety = window.setTimeout(finishPanels, 6000);
 
       const tl = gsap.timeline();
-      tl.fromTo(introTitle,
+      tl.fromTo(title,
         { autoAlpha: 0, y: 14 },
         { autoAlpha: 1, y: 0, duration: 0.7, ease: "power2.out", delay: 0.15 },
       )
-      .to(introTitle, { autoAlpha: 0, y: -10, duration: 0.4, ease: "power2.in" }, "+=0.7")
-      .to(introTop, { yPercent: -100, duration: 1.15, ease: "power4.inOut" }, "<0.05")
-      .to(introBottom, { yPercent: 100, duration: 1.15, ease: "power4.inOut" }, "<")
+      .to(title, { autoAlpha: 0, y: -10, duration: 0.4, ease: "power2.in" }, "+=0.7")
+      .to(top, { yPercent: -100, duration: 1.15, ease: "power4.inOut" }, "<0.05")
+      .to(bottom, { yPercent: 100, duration: 1.15, ease: "power4.inOut" }, "<")
       .call(finishPanels);
     }
 
