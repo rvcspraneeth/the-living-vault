@@ -3,10 +3,8 @@ import Script from "next/script";
 import ScrollAnimations from "./ScrollAnimations";
 
 const navItems = [
-  ["Harvest", "#method"],
-  ["About", "#about"],
   ["Crops", "#crops"],
-  ["Quality", "#science"],
+  ["Inside the vault", "#vault"],
   ["Contact", "#contact"],
 ] as const;
 
@@ -68,244 +66,109 @@ export default function Home() {
           </h2>
         </section>
 
-        <section className="method section-pad" id="method" aria-labelledby="method-title" data-flow-section>
-          <div className="section-heading reveal">
-            <p className="eyebrow">Harvest quality</p>
-            <h2 id="method-title">Cleaner, fresher crops selected for everyday use.</h2>
-            <p>
-              Every crop is grown, picked, sorted, and packed around the qualities people notice
-              first: freshness, color, aroma, texture, uniformity, and shelf appeal.
-            </p>
+        <section className="crops section-pad reveal" id="crops" aria-labelledby="crops-title">
+          <div className="section-heading">
+            <p className="eyebrow">What we grow</p>
+            <h2 id="crops-title">Rare crops, grown slowly. Everyday essentials, grown well.</h2>
           </div>
-          <div className="control-comparison reveal">
-            <div className="control-comparison__side control-comparison__side--wild">
-              <p>Inconsistent harvests</p>
-              <h3>Quality can vary</h3>
-              <ul>
-                <li>Mixed size, color, and texture</li>
-                <li>Shorter freshness window after harvest</li>
-                <li>Uneven flavor and appearance by batch</li>
-              </ul>
-            </div>
-            <div className="control-comparison__dial" aria-hidden="true">
-              <span />
-              <strong>Quality</strong>
-            </div>
-            <div className="control-comparison__side control-comparison__side--vault">
-              <p>Our crop standard</p>
-              <h3>Better market-ready produce</h3>
-              <ul>
-                <li>Selected for color, aroma, and texture</li>
-                <li>Harvested with crop-specific timing</li>
-                <li>Sorted for cleaner, more consistent supply</li>
-              </ul>
-            </div>
+
+          <p className="crops__group-label">Rare &amp; slow</p>
+          <div className="crops__rare">
+            <article className="crop-card crop-card--rare">
+              <Image className="crop-card__art" src="/images/crops/cartoon/vanilla.svg" alt="" width={240} height={240} unoptimized />
+              <h3>Vanilla</h3>
+              <p>Hand-pollinated. Slow-cured. Built for fragrance depth.</p>
+            </article>
+            <article className="crop-card crop-card--rare">
+              <Image className="crop-card__art" src="/images/crops/cartoon/black-pepper.svg" alt="" width={240} height={240} unoptimized />
+              <h3>Black pepper</h3>
+              <p>Vine-grown, sun-finished, sorted for aroma.</p>
+            </article>
+            <article className="crop-card crop-card--rare">
+              <Image className="crop-card__art" src="/images/crops/cartoon/turmeric.svg" alt="" width={240} height={240} unoptimized />
+              <h3>Turmeric</h3>
+              <p>Cured roots with deep color and clean finish.</p>
+            </article>
           </div>
-          <div className="method__journey" data-flow-journey>
-            <div className="section-heading section-heading--wide reveal">
-              <p className="eyebrow">Growing journey</p>
-              <h2 id="journey-title">Every crop is handled for freshness before it leaves us.</h2>
-              <p>
-                From planting to delivery, each step is focused on the crop itself: clean starts,
-                steady growth, careful harvest, sorting, and freshness.
-              </p>
-            </div>
-            <div className="journey-track" data-journey-track />
+
+          <p className="crops__group-label">Everyday essentials</p>
+          <div className="crops__everyday">
+            {[
+              ["Lettuce", "lettuce.svg"],
+              ["Spinach", "spinach.svg"],
+              ["Kale", "kale.svg"],
+              ["Cilantro", "cilantro.svg"],
+              ["Bell peppers", "bell-pepper.svg"],
+              ["Ginger", "ginger.svg"],
+            ].map(([name, img]) => (
+              <article key={name} className="crop-card crop-card--everyday">
+                <Image className="crop-card__art" src={`/images/crops/cartoon/${img}`} alt="" width={160} height={160} unoptimized />
+                <h4>{name}</h4>
+              </article>
+            ))}
           </div>
         </section>
 
-        <section className="about section-pad" id="about" aria-labelledby="about-title">
-          <div className="about__grid">
-            <div className="section-heading reveal">
-              <p className="eyebrow">About us</p>
-              <h2 id="about-title">Built to supply fresh crops with dependable quality.</h2>
-            </div>
-            <div className="about__content reveal">
-              <p>
-                The Living Vault grows spices, herbs, leafy greens, and vegetables for people and
-                businesses who care about freshness, consistency, and careful handling.
-              </p>
-              <p>
-                Our approach is practical: protect the crop, monitor it closely, harvest at the
-                right time, and handle it with discipline so the produce arrives with better flavor,
-                color, texture, and shelf appeal.
-              </p>
-              <div className="about__principles" aria-label="Cultivation principles">
-                <article>
-                  <span>01</span>
-                  <h3>Produce first</h3>
-                  <p>Every decision is judged by the crop people receive: cleaner leaves, stronger color, better aroma, and more consistent harvests.</p>
-                </article>
-                <article>
-                  <span>02</span>
-                  <h3>Care before claims</h3>
-                  <p>Quality comes from daily crop observation, harvest timing, careful sorting, and honest agronomy.</p>
-                </article>
-              </div>
-            </div>
+        <section className="pillars section-pad reveal" id="vault" aria-labelledby="pillars-title">
+          <div className="section-heading">
+            <p className="eyebrow">Inside the vault</p>
+            <h2 id="pillars-title">What the polyhouse actually does.</h2>
+          </div>
+          <div className="pillars__grid">
+            <article className="pillar">
+              <p className="pillar__name">Climate</p>
+              <p className="pillar__line">22&ndash;26&deg;C, dialed by hour.</p>
+            </article>
+            <article className="pillar">
+              <p className="pillar__name">Hygiene</p>
+              <p className="pillar__line">Sealed envelope. No pesticides.</p>
+            </article>
+            <article className="pillar">
+              <p className="pillar__name">Hand-care</p>
+              <p className="pillar__line">Vanilla hand-pollinated daily.</p>
+            </article>
+            <article className="pillar">
+              <p className="pillar__name">Year-round</p>
+              <p className="pillar__line">12 harvests where outdoor farms get one.</p>
+            </article>
           </div>
         </section>
 
-        <section className="crop-worlds section-pad" id="crops" aria-labelledby="crops-title" data-flow-crops>
-          <div className="section-heading section-heading--wide reveal">
-            <p className="eyebrow">Our crop range</p>
-            <h2 id="crops-title">Spices, herbs, greens, and vegetables for everyday fresh supply.</h2>
-            <p>
-              Select a crop to see its quality signals, harvest value, and crop-specific care notes.
-            </p>
+        <section className="contact section-pad reveal" id="contact" aria-labelledby="contact-title">
+          <div className="contact__intro">
+            <p className="eyebrow">Get in touch</p>
+            <h2 id="contact-title">Tell us what you&rsquo;re looking for.</h2>
+            <p className="contact__lede">Buyers, distributors, press &mdash; one form, one inbox. We reply within a working day.</p>
           </div>
-          <div className="crop-stage reveal" data-crop-stage>
-            <div className="crop-stage__visual" aria-hidden="true">
-              <div className="crop-stage__orb">
-                <Image
-                  className="crop-stage__art"
-                  data-crop-image
-                  src="/images/crops/cartoon/vanilla.svg"
-                  alt=""
-                  width="720"
-                  height="720"
-                  unoptimized
-                  decoding="async"
-                />
-              </div>
-              <div className="crop-stage__rings" />
+          <form className="contact__form" aria-label="Contact form">
+            <div className="contact__row">
+              <label htmlFor="contact-name">Name</label>
+              <input id="contact-name" type="text" name="name" autoComplete="name" required />
             </div>
-            <div className="crop-stage__content">
-              <p className="eyebrow" data-crop-kicker>
-                Vanilla
-              </p>
-              <h3 data-crop-title>Aromatic vanilla for cooking and flavor.</h3>
-              <p data-crop-copy>
-                Slow-grown vanilla is selected for pod quality, fragrance depth, and careful curing
-                so the finished crop carries stronger aroma.
-              </p>
-              <dl className="crop-stage__facts">
-                <div>
-                  <dt>Crop Character</dt>
-                  <dd data-crop-climate>Fragrant pods</dd>
-                </div>
-                <div>
-                  <dt>Signal</dt>
-                  <dd data-crop-signal>Fragrance depth</dd>
-                </div>
-                <div>
-                  <dt>Buyer Value</dt>
-                  <dd data-crop-advantage>Deep aroma for cooking</dd>
-                </div>
-                <div>
-                  <dt>Harvest</dt>
-                  <dd data-crop-harvest>Slow-cured pods</dd>
-                </div>
-                <div>
-                  <dt>Finish</dt>
-                  <dd data-crop-grade>Clean aroma</dd>
-                </div>
-                <div>
-                  <dt>Care Notes</dt>
-                  <dd data-crop-technique>
-                    Trellis vines, hand-pollinate flowers, and cure pods slowly for deeper aroma.
-                  </dd>
-                </div>
-              </dl>
+            <div className="contact__row">
+              <label htmlFor="contact-email">Email</label>
+              <input id="contact-email" type="email" name="email" autoComplete="email" required />
             </div>
-            <div className="crop-tabs" role="tablist" aria-label="Crop selection" data-crop-tabs />
-          </div>
-        </section>
-
-        <section className="science section-pad" id="science" aria-labelledby="science-title" data-flow-section>
-          <div className="science__grid">
-            <div className="section-heading reveal">
-              <p className="eyebrow">Quality standards</p>
-              <h2 id="science-title">Produce selected for freshness, finish, and consistency.</h2>
-              <p>
-                Our value is in the crop: how it looks, smells, tastes, stores, and performs for
-                kitchens, retailers, local shops, and households.
-              </p>
+            <div className="contact__row">
+              <label htmlFor="contact-company">Company <span className="contact__optional">(optional)</span></label>
+              <input id="contact-company" type="text" name="company" autoComplete="organization" />
             </div>
-            <div className="system-panel reveal" aria-label="Crop quality standards">
-              <div className="system-panel__scan" />
-              {[
-                ["01", "Freshness", "Leaves, roots, pods, and fruits are harvested with timing that supports better condition and shelf appeal."],
-                ["02", "Flavor and color", "Crop lots are selected for stronger aroma, color, texture, and finish."],
-                ["03", "Clean handling", "Harvests are handled carefully from picking through sorting to preserve appearance and usability."],
-                ["04", "Market-ready sorting", "Harvests are inspected and sorted with a focus on consistency, appearance, and usability."],
-              ].map(([number, title, copy]) => (
-                <article key={number}>
-                  <span>{number}</span>
-                  <h3>{title}</h3>
-                  <p>{copy}</p>
-                </article>
-              ))}
+            <div className="contact__row">
+              <label htmlFor="contact-role">You are</label>
+              <select id="contact-role" name="role" required defaultValue="">
+                <option value="" disabled>Choose one&hellip;</option>
+                <option value="distributor">Distributor</option>
+                <option value="buyer">Buyer</option>
+                <option value="press">Press</option>
+                <option value="other">Other</option>
+              </select>
             </div>
-          </div>
-        </section>
-
-        <section className="contact section-pad" id="contact" aria-labelledby="contact-title">
-          <div className="contact__grid">
-            <div className="section-heading reveal">
-              <p className="eyebrow">Contact us</p>
-              <h2 id="contact-title">Let&rsquo;s talk about fresh crops.</h2>
-              <p>
-                Whether you&rsquo;re sourcing for a restaurant, retail shop, or household — reach
-                out and we&rsquo;ll get back to you within one working day.
-              </p>
-              <div className="contact__details reveal">
-                <div className="contact__detail">
-                  <span className="eyebrow">Email</span>
-                  <a href="mailto:hello@thelivingvault.in">hello@thelivingvault.in</a>
-                </div>
-                <div className="contact__detail">
-                  <span className="eyebrow">Based in</span>
-                  <span>Andhra Pradesh, India</span>
-                </div>
-              </div>
+            <div className="contact__row">
+              <label htmlFor="contact-message">Message</label>
+              <textarea id="contact-message" name="message" rows={5} required />
             </div>
-            <form className="contact__form reveal" aria-label="Contact form">
-              <div className="contact__row">
-                <label htmlFor="contact-name">Your name</label>
-                <input
-                  id="contact-name"
-                  type="text"
-                  name="name"
-                  placeholder="Priya Sharma"
-                  autoComplete="name"
-                  required
-                />
-              </div>
-              <div className="contact__row">
-                <label htmlFor="contact-email">Email address</label>
-                <input
-                  id="contact-email"
-                  type="email"
-                  name="email"
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                  required
-                />
-              </div>
-              <div className="contact__row">
-                <label htmlFor="contact-interest">What are you looking for?</label>
-                <input
-                  id="contact-interest"
-                  type="text"
-                  name="interest"
-                  placeholder="e.g. weekly lettuce supply, vanilla pods…"
-                />
-              </div>
-              <div className="contact__row">
-                <label htmlFor="contact-message">Message</label>
-                <textarea
-                  id="contact-message"
-                  name="message"
-                  rows={5}
-                  placeholder="Tell us about your volumes, frequency, or anything else that helps us prepare."
-                />
-              </div>
-              <button className="button button--primary" type="submit">
-                Send Message
-              </button>
-            </form>
-          </div>
+            <button className="button button--primary" type="submit">Send enquiry</button>
+          </form>
         </section>
 
 
@@ -323,9 +186,8 @@ export default function Home() {
           <p>Spices, greens, herbs, and vegetables grown with disciplined care.</p>
         </div>
         <div className="footer__links" aria-label="Footer navigation">
-          <a href="#method">Harvest</a>
           <a href="#crops">Crops</a>
-          <a href="#science">Quality</a>
+          <a href="#vault">Inside the vault</a>
           <a href="#contact">Contact</a>
         </div>
         <form className="footer__form" aria-label="Follow the harvest signup">
