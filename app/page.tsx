@@ -60,6 +60,14 @@ export default function Home() {
         </section>
         </div>
 
+        <section className="promise section-pad reveal" aria-labelledby="promise-title">
+          <h2 id="promise-title" className="promise__line">
+            Outside, weather decides.
+            <br />
+            Inside, we do.
+          </h2>
+        </section>
+
         <section className="method section-pad" id="method" aria-labelledby="method-title" data-flow-section>
           <div className="section-heading reveal">
             <p className="eyebrow">Harvest quality</p>

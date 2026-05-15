@@ -420,6 +420,26 @@ svg {
   padding: clamp(5.5rem, 9vw, 9.5rem) clamp(1rem, 5vw, 4rem);
 }
 
+/* The promise — single big sentence, lots of breathing room (TI-style) */
+.promise {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  min-height: 70vh;
+  padding-block: clamp(8rem, 14vw, 14rem);
+}
+
+.promise__line {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: clamp(2.6rem, 6vw, 5.6rem);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  max-width: 22ch;
+}
+
 .section-heading {
   max-width: 760px;
   margin: 0 auto clamp(2.4rem, 5vw, 4.75rem);
