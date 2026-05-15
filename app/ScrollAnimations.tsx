@@ -479,8 +479,21 @@ export default function ScrollAnimations() {
             let lastBlend = -1;
             let lastEvictAt = HOME_FRAME;
 
+            // Cache scroll bounds so we can read scrollY directly (no GSAP scrub lag).
+            // Re-computed on resize via the handleResize callback below.
+            let scrollStart = videoSection.getBoundingClientRect().top + window.scrollY;
+            let scrollEnd = scrollStart + videoSection.offsetHeight - window.innerHeight;
+            const updateScrollBounds = () => {
+              scrollStart = videoSection.getBoundingClientRect().top + window.scrollY;
+              scrollEnd = scrollStart + videoSection.offsetHeight - window.innerHeight;
+            };
+            window.addEventListener("resize", updateScrollBounds, { passive: true });
+            cleanupCallbacks.push(() => window.removeEventListener("resize", updateScrollBounds));
+
             const tick = () => {
-              const preciseFrame = HOME_FRAME + captions.totalProgress() * (LAST_FRAME - HOME_FRAME);
+              // Read scroll position directly — zero lag, same approach as Terminal Industries.
+              const rawProgress = Math.max(0, Math.min(1, (window.scrollY - scrollStart) / (scrollEnd - scrollStart)));
+              const preciseFrame = HOME_FRAME + rawProgress * (LAST_FRAME - HOME_FRAME);
               const roundedFrame = Math.round(preciseFrame);
 
               if (isMobile) {
@@ -724,7 +737,7 @@ export default function ScrollAnimations() {
             trigger: videoSection,
             start: "top top",
             end: "bottom bottom",
-            scrub: 0.15,
+            scrub: 0.08,
             animation: captions,
             ...(!isMobile
               ? {
