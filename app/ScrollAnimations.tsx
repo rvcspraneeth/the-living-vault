@@ -101,7 +101,9 @@ export default function ScrollAnimations() {
           },
         });
 
-        // Promise section — word-by-word scrub reveal (TI-style)
+        // Promise section — pin inner content while words ink up word-by-word.
+        // Outer section is 220vh tall; pin holds the inner sticky for the
+        // first ~120vh of that scroll, then releases.
         const promiseWords = gsap.utils.toArray<HTMLElement>(".promise__word");
         if (promiseWords.length) {
           gsap.to(promiseWords, {
@@ -110,9 +112,11 @@ export default function ScrollAnimations() {
             ease: "none",
             scrollTrigger: {
               trigger: ".promise",
-              start: "top 80%",
-              end: "bottom 40%",
-              scrub: 0.6,
+              start: "top top",
+              end: "+=120%",
+              pin: "[data-promise-pin]",
+              pinSpacing: true,
+              scrub: 0.5,
             },
           });
         }

@@ -300,32 +300,61 @@ svg {
   padding: clamp(5.5rem, 9vw, 9.5rem) clamp(1rem, 5vw, 4rem);
 }
 
-/* The promise — single big sentence, lots of breathing room (TI-style) */
+/* The promise — pinned cinematic moment. Outer section provides scroll
+   length; .promise__inner sticks to top of viewport while words ink up. */
 .promise {
+  position: relative;
+  min-height: 220vh; /* gives GSAP ScrollTrigger room to pin + scrub */
+}
+
+.promise__inner {
+  position: relative;
+  min-height: 100vh;
   display: grid;
-  place-items: center;
-  text-align: center;
-  min-height: 70vh;
-  padding-block: clamp(8rem, 14vw, 14rem);
+  align-content: center;
+  padding: 0 clamp(1.5rem, 8vw, 8rem);
+  max-width: 90rem;
+  margin: 0 auto;
+}
+
+.promise__accent {
+  position: absolute;
+  left: clamp(1.5rem, 8vw, 8rem);
+  top: 50%;
+  width: 1px;
+  height: 7rem;
+  background: linear-gradient(180deg, transparent, var(--ink) 30%, var(--ink) 70%, transparent);
+  transform: translateY(-50%);
+  opacity: 0.55;
+}
+
+.promise__eyebrow {
+  margin: 0 0 clamp(2.2rem, 4vw, 3.5rem);
+  padding-left: 2.2rem;
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gold);
 }
 
 .promise__line {
   margin: 0;
+  padding-left: 2.2rem;
   font-family: var(--serif);
   font-weight: 700;
-  font-size: clamp(2.6rem, 6vw, 5.6rem);
+  font-size: clamp(2.6rem, 6.4vw, 6rem);
   line-height: 1.04;
   letter-spacing: -0.02em;
   color: var(--ink);
   max-width: 22ch;
 }
 
-/* Each word starts as a faint ghost; the GSAP scroll-scrub fades it to full ink
-   as the user scrolls through the section. Same effect TI uses. */
+/* Words start as faint ghosts; GSAP scrub inks them up as user scrolls. */
 .promise__word {
   display: inline-block;
-  color: rgba(43, 27, 18, 0.16);
-  transition: color 0.05s linear;
+  color: rgba(43, 27, 18, 0.14);
   will-change: color;
 }
 

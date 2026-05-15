@@ -67,16 +67,20 @@ export default function Home() {
         </section>
         </div>
 
-        <section className="promise section-pad" aria-labelledby="promise-title">
-          <h2 id="promise-title" className="promise__line">
-            {"Outside, weather decides.".split(" ").map((w) => (
-              <span className="promise__word" key={`o-${w}`}>{w}&nbsp;</span>
-            ))}
-            <br />
-            {"Inside, we do.".split(" ").map((w) => (
-              <span className="promise__word" key={`i-${w}`}>{w}&nbsp;</span>
-            ))}
-          </h2>
+        <section className="promise" aria-labelledby="promise-title">
+          <div className="promise__inner" data-promise-pin>
+            <span className="promise__accent" aria-hidden="true" />
+            <p className="promise__eyebrow">01 &mdash; The promise</p>
+            <h2 id="promise-title" className="promise__line">
+              {"Outside, weather decides.".split(" ").map((w) => (
+                <span className="promise__word" key={`o-${w}`}>{w}&nbsp;</span>
+              ))}
+              <br />
+              {"Inside, we do.".split(" ").map((w) => (
+                <span className="promise__word" key={`i-${w}`}>{w}&nbsp;</span>
+              ))}
+            </h2>
+          </div>
         </section>
 
         <section className="crops section-pad reveal" id="crops" aria-labelledby="crops-title">
