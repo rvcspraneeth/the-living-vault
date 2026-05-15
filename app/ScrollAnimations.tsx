@@ -728,28 +728,14 @@ export default function ScrollAnimations() {
           captions
             .to(".hero-caption--9", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(caption9.start));
 
-          const captionSnapPoints = captionAnchors.map(progressForFrame);
-
           // CSS sticky handles layout — ScrollTrigger tracks progress through the 1000vh section.
-          // scrub: 0.15 keeps captions tightly coupled to scroll with just enough smoothing
-          // to avoid jitter, while eliminating the lag that caused caption overlaps at 0.5.
+          // No snap: free-scroll like Terminal Industries so the canvas responds 1:1 to scroll.
           ScrollTrigger.create({
             trigger: videoSection,
             start: "top top",
             end: "bottom bottom",
             scrub: 0.08,
             animation: captions,
-            ...(!isMobile
-              ? {
-                  snap: {
-                    snapTo: captionSnapPoints,
-                    duration: { min: 0.4, max: 1.0 },
-                    delay: 0.05,
-                    ease: "power2.inOut",
-                    inertia: false,
-                  },
-                }
-              : {}),
           });
 
           let lastResizeWidth = window.innerWidth;
