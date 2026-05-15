@@ -42,6 +42,12 @@ export default function ScrollAnimations() {
     const introBottom = document.querySelector<HTMLElement>(".intro__panel--bottom");
 
     if (introEl && introTitle && introTop && introBottom) {
+      // Stop the browser auto-restoring scrollY from the previous session.
+      // Otherwise the page snaps mid-hero the moment intro panels open.
+      if ("scrollRestoration" in history) {
+        history.scrollRestoration = "manual";
+      }
+      window.scrollTo(0, 0);
       document.body.style.overflow = "hidden";
       const panelWaiters: Array<() => void> = [];
       waitForPanels = (cb) => {
