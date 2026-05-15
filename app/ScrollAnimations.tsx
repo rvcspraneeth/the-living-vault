@@ -37,6 +37,7 @@ export default function ScrollAnimations() {
     let rafId: number | null = null;
     const matchMedia = gsap.matchMedia();
     let revealIntroPanels: ((onComplete?: () => void) => void) | undefined;
+    const cleanupCallbacks: Array<() => void> = [];
 
     // Split-panel intro animation
     const introEl = document.querySelector<HTMLElement>("[data-intro]");
@@ -180,8 +181,7 @@ export default function ScrollAnimations() {
             .to(".hero .eyebrow", { autoAlpha: 1, y: 0 }, 0.08)
             .to(".hero h1", { autoAlpha: 1, y: 0 }, 0.2)
             .to(".hero__lede", { autoAlpha: 1, y: 0 }, 0.34)
-            .to(".hero__actions", { autoAlpha: 1, y: 0 }, 0.48)
-            .to(".hero__veil", { autoAlpha: 1, duration: 1.4, ease: "power2.inOut" }, 0);
+            .to(".hero__actions", { autoAlpha: 1, y: 0 }, 0.48);
         };
 
         gsap.set("[data-header]", { autoAlpha: 0, y: -16 });
@@ -189,7 +189,6 @@ export default function ScrollAnimations() {
         gsap.set(".hero h1", { autoAlpha: 0, y: 28 });
         gsap.set(".hero__lede", { autoAlpha: 0, y: 24 });
         gsap.set(".hero__actions", { autoAlpha: 0, y: 20 });
-        gsap.set(".hero__veil", { autoAlpha: 0 });
 
         ScrollTrigger.batch(".reveal:not(.hero__content):not(.journey-card):not([data-crop-stage])", {
           start: "top 78%",
@@ -205,7 +204,7 @@ export default function ScrollAnimations() {
           },
         });
 
-        // Canvas frame-by-frame scroll video — identical technique to Terminal Industries
+        // Canvas frame-by-frame scroll video with worker-backed frame fetch/decode.
         const videoSection = document.querySelector<HTMLElement>("[data-video-section]");
         const canvas = document.querySelector<HTMLCanvasElement>("[data-hero-canvas]");
 
@@ -213,14 +212,16 @@ export default function ScrollAnimations() {
           const ctx = canvas.getContext("2d");
           const introCtx = introCanvas?.getContext("2d") ?? null;
           const FIRST_FRAME = 44;
-          const HOME_FRAME = 80;
-          const LAST_FRAME = 999;
+          const HOME_FRAME = 120;
+          const LAST_FRAME = 1249;
           const MORPH_FROM_FRAME = 156;
           const MORPH_TO_FRAME = 157;
           const MORPH_WINDOW_START = 153;
           const MORPH_WINDOW_END = 160;
           const frames = new Map<number, ImageBitmap>();
           const pending = new Set<number>();
+          const boostedPending = new Set<number>();
+          const pendingCallbacks = new Map<number, Array<() => void>>();
           const initialFrameCount = HOME_FRAME - FIRST_FRAME + 1;
           let loadedInitialFrames = 0;
           let initialFramesReady = false;
@@ -232,7 +233,7 @@ export default function ScrollAnimations() {
           const isMobile = window.innerWidth <= 768;
 
           const sizeCanvases = () => {
-            const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2.5);
+            const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
             const width = Math.round(window.innerWidth * dpr);
             const height = Math.round(window.innerHeight * dpr);
             canvas.width = width;
@@ -297,23 +298,180 @@ export default function ScrollAnimations() {
             return true;
           };
 
-          const loadFrame = (frameNumber: number, onLoad?: () => void) => {
+          const frameSrc = (frameNumber: number) =>
+            new URL(`/frames/frame_${String(frameNumber).padStart(4, "0")}.webp`, window.location.origin).href;
+
+          const createFrameWorker = () => {
+            if (typeof Worker === "undefined") return { worker: null, url: null };
+
+            const workerSource = `
+              const queue = [];
+              const queued = new Map();
+              const inFlight = new Set();
+              const MAX_CONCURRENT = 5;
+              let active = 0;
+              let sequence = 0;
+
+              const sortQueue = () => {
+                queue.sort((a, b) => {
+                  if (a.priority !== b.priority) return b.priority - a.priority;
+                  return a.sequence - b.sequence;
+                });
+              };
+
+              const pump = () => {
+                while (active < MAX_CONCURRENT && queue.length > 0) {
+                  sortQueue();
+                  const job = queue.shift();
+                  if (!job) return;
+                  queued.delete(job.frameNumber);
+                  if (inFlight.has(job.frameNumber)) continue;
+
+                  active += 1;
+                  inFlight.add(job.frameNumber);
+                  load(job).finally(() => {
+                    active -= 1;
+                    inFlight.delete(job.frameNumber);
+                    pump();
+                  });
+                }
+              };
+
+              const load = async ({ frameNumber, src }) => {
+                try {
+                  const response = await fetch(src);
+                  if (!response.ok) throw new Error("Frame fetch failed");
+
+                  const blob = await response.blob();
+                  if ("createImageBitmap" in self) {
+                    const bitmap = await createImageBitmap(blob);
+                    self.postMessage({ type: "frame", payload: { frameNumber, bitmap } }, [bitmap]);
+                    return;
+                  }
+
+                  self.postMessage({ type: "blob", payload: { frameNumber, blob } });
+                } catch (error) {
+                  self.postMessage({
+                    type: "error",
+                    payload: {
+                      frameNumber,
+                      message: error instanceof Error ? error.message : String(error),
+                    },
+                  });
+                }
+              };
+
+              self.addEventListener("message", (event) => {
+                if (event.data?.type !== "load") return;
+                const { frameNumber, src, priority = 0 } = event.data.payload;
+                if (inFlight.has(frameNumber)) return;
+
+                const existing = queued.get(frameNumber);
+                if (existing) {
+                  existing.src = src;
+                  existing.priority = Math.max(existing.priority, priority);
+                  return;
+                }
+
+                const job = { frameNumber, src, priority, sequence: sequence++ };
+                queued.set(frameNumber, job);
+                queue.push(job);
+                pump();
+              });
+            `;
+
+            const url = URL.createObjectURL(new Blob([workerSource], { type: "text/javascript" }));
+            try {
+              return { worker: new Worker(url), url };
+            } catch {
+              URL.revokeObjectURL(url);
+              return { worker: null, url: null };
+            }
+          };
+
+          const frameWorkerState = createFrameWorker();
+
+          const runFrameCallbacks = (frameNumber: number) => {
+            const callbacks = pendingCallbacks.get(frameNumber);
+            if (!callbacks) return;
+            pendingCallbacks.delete(frameNumber);
+            callbacks.forEach((callback) => callback());
+          };
+
+          const storeFrame = (frameNumber: number, bitmap: ImageBitmap) => {
+            pending.delete(frameNumber);
+            boostedPending.delete(frameNumber);
+            frames.set(frameNumber, bitmap);
+            runFrameCallbacks(frameNumber);
+          };
+
+          const failFrame = (frameNumber: number) => {
+            pending.delete(frameNumber);
+            boostedPending.delete(frameNumber);
+            pendingCallbacks.delete(frameNumber);
+          };
+
+          frameWorkerState.worker?.addEventListener("message", (event: MessageEvent) => {
+            const message = event.data as
+              | { type: "frame"; payload: { frameNumber: number; bitmap: ImageBitmap } }
+              | { type: "blob"; payload: { frameNumber: number; blob: Blob } }
+              | { type: "error"; payload: { frameNumber: number; message?: string } };
+
+            if (message.type === "frame") {
+              storeFrame(message.payload.frameNumber, message.payload.bitmap);
+              return;
+            }
+
+            if (message.type === "blob") {
+              createImageBitmap(message.payload.blob)
+                .then((bitmap) => storeFrame(message.payload.frameNumber, bitmap))
+                .catch(() => failFrame(message.payload.frameNumber));
+              return;
+            }
+
+            pending.delete(message.payload.frameNumber);
+            boostedPending.delete(message.payload.frameNumber);
+            fetchFrameOnMainThread(message.payload.frameNumber, frameSrc(message.payload.frameNumber));
+          });
+
+          const fetchFrameOnMainThread = (frameNumber: number, src: string) => {
+            fetch(src)
+              .then((r) => r.blob())
+              .then((blob) => createImageBitmap(blob))
+              .then((bitmap) => storeFrame(frameNumber, bitmap))
+              .catch(() => failFrame(frameNumber));
+          };
+
+          const loadFrame = (frameNumber: number, onLoad?: () => void, priority = 0) => {
             if (frames.has(frameNumber)) {
               onLoad?.();
               return;
             }
-            if (pending.has(frameNumber)) return;
+            if (onLoad) {
+              const callbacks = pendingCallbacks.get(frameNumber) ?? [];
+              callbacks.push(onLoad);
+              pendingCallbacks.set(frameNumber, callbacks);
+            }
+            if (pending.has(frameNumber)) {
+              if (priority > 0 && frameWorkerState.worker && !boostedPending.has(frameNumber)) {
+                boostedPending.add(frameNumber);
+                frameWorkerState.worker.postMessage({
+                  type: "load",
+                  payload: { frameNumber, src: frameSrc(frameNumber), priority },
+                });
+              }
+              return;
+            }
             pending.add(frameNumber);
+            if (priority > 0) boostedPending.add(frameNumber);
+            const src = frameSrc(frameNumber);
 
-            fetch(`/frames/frame_${String(frameNumber).padStart(4, "0")}.webp`)
-              .then((r) => r.blob())
-              .then((blob) => createImageBitmap(blob))
-              .then((bitmap) => {
-                pending.delete(frameNumber);
-                frames.set(frameNumber, bitmap);
-                onLoad?.();
-              })
-              .catch(() => pending.delete(frameNumber));
+            if (frameWorkerState.worker) {
+              frameWorkerState.worker.postMessage({ type: "load", payload: { frameNumber, src, priority } });
+              return;
+            }
+
+            fetchFrameOnMainThread(frameNumber, src);
           };
 
           const startScrollFrameLoop = () => {
@@ -327,10 +485,12 @@ export default function ScrollAnimations() {
 
               if (isMobile) {
                 // Mobile: sliding window — stream ahead and evict behind to cap memory
-                const LOOKAHEAD = 30;
+                const LOOKAHEAD = 24;
                 const LOOKBEHIND = 10;
                 const loadTo = Math.min(roundedFrame + LOOKAHEAD, LAST_FRAME);
-                for (let f = roundedFrame; f <= loadTo; f++) loadFrame(f);
+                for (let f = roundedFrame; f <= loadTo; f++) {
+                  loadFrame(f, undefined, f <= roundedFrame + 6 ? 10 : 4);
+                }
                 if (Math.abs(roundedFrame - lastEvictAt) >= 20) {
                   lastEvictAt = roundedFrame;
                   const keepFrom = Math.max(HOME_FRAME, roundedFrame - LOOKBEHIND);
@@ -342,9 +502,11 @@ export default function ScrollAnimations() {
                   }
                 }
               } else {
-                // Desktop: small safety lookahead in case batches haven't caught up yet
-                const loadTo = Math.min(roundedFrame + 20, LAST_FRAME);
-                for (let f = roundedFrame; f <= loadTo; f++) loadFrame(f);
+                // Desktop: keep the active scroll neighborhood ahead of background preloading.
+                const loadTo = Math.min(roundedFrame + 28, LAST_FRAME);
+                for (let f = Math.max(HOME_FRAME, roundedFrame - 2); f <= loadTo; f++) {
+                  loadFrame(f, undefined, f <= roundedFrame + 8 ? 10 : 5);
+                }
               }
 
               if (preciseFrame >= MORPH_WINDOW_START && preciseFrame < MORPH_WINDOW_END) {
@@ -431,20 +593,23 @@ export default function ScrollAnimations() {
                 if (loadedInitialFrames === initialFrameCount) {
                   initialFramesReady = true;
                   startAutoIntro();
-                  // Initial frames are in — now flood the connection pool with
-                  // all scroll frames so they're decoded before the user scrolls.
+                  // Initial frames are in — then enqueue the rest as low-priority
+                  // background work so active scroll frames can jump the queue.
                   if (!isMobile) {
-                    for (let f = HOME_FRAME + 1; f <= LAST_FRAME; f++) loadFrame(f);
+                    window.setTimeout(() => {
+                      for (let f = HOME_FRAME + 1; f <= LAST_FRAME; f += 30) loadFrame(f, undefined, 1);
+                      for (let f = HOME_FRAME + 1; f <= LAST_FRAME; f++) loadFrame(f);
+                    }, 350);
                   }
                 }
               }
-            });
+            }, 20);
           }
 
           // Priority-load the targeted bitmap blend frames. They are used for
           // the widened frame 156→157 transition during the scroll film.
-          loadFrame(MORPH_FROM_FRAME);
-          loadFrame(MORPH_TO_FRAME);
+          loadFrame(MORPH_FROM_FRAME, undefined, 12);
+          loadFrame(MORPH_TO_FRAME, undefined, 12);
 
           // Caption timeline — positions derived from per-frame analysis of Hero_vault.mp4
           // scroll progress maps frame 80–999, after the automatic homepage
@@ -524,12 +689,23 @@ export default function ScrollAnimations() {
           });
 
           let lastResizeWidth = window.innerWidth;
-          window.addEventListener("resize", () => {
+          const handleResize = () => {
             if (window.innerWidth === lastResizeWidth) return;
             lastResizeWidth = window.innerWidth;
             sizeCanvases();
             drawFrame(currentFrame);
             updateIntroPreview(currentFrame);
+          };
+          window.addEventListener("resize", handleResize);
+
+          cleanupCallbacks.push(() => {
+            window.removeEventListener("resize", handleResize);
+            frameWorkerState.worker?.terminate();
+            if (frameWorkerState.url) URL.revokeObjectURL(frameWorkerState.url);
+            frames.forEach((bitmap) => bitmap.close());
+            frames.clear();
+            pending.clear();
+            pendingCallbacks.clear();
           });
         }
 
@@ -591,6 +767,7 @@ export default function ScrollAnimations() {
 
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
+      cleanupCallbacks.forEach((cleanup) => cleanup());
       context?.revert();
       matchMedia.revert();
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
