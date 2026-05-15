@@ -204,7 +204,9 @@ export default function ScrollAnimations() {
           },
         });
 
-        // Canvas frame-by-frame scroll video with worker-backed frame fetch/decode.
+        // Canvas frame-by-frame scroll video — same architecture as Terminal Industries:
+        // worker fetches blobs, main thread creates blob URLs + HTMLImageElements,
+        // rAF reads scrollY directly, captions toggled via CSS transitions (no GSAP).
         const videoSection = document.querySelector<HTMLElement>("[data-video-section]");
         const canvas = document.querySelector<HTMLCanvasElement>("[data-hero-canvas]");
 
@@ -218,7 +220,9 @@ export default function ScrollAnimations() {
           const MORPH_TO_FRAME = 157;
           const MORPH_WINDOW_START = 153;
           const MORPH_WINDOW_END = 160;
-          const frames = new Map<number, ImageBitmap>();
+          // Store HTMLImageElements keyed by frame number (same as TI's approach)
+          const frames = new Map<number, HTMLImageElement>();
+          const blobUrls = new Map<number, string>();
           const pending = new Set<number>();
           const boostedPending = new Set<number>();
           const pendingCallbacks = new Map<number, Array<() => void>>();
@@ -252,11 +256,11 @@ export default function ScrollAnimations() {
           const drawImageToCanvas = (
             targetCanvas: HTMLCanvasElement,
             targetCtx: CanvasRenderingContext2D,
-            frame: ImageBitmap,
+            img: HTMLImageElement,
             clear = true,
           ) => {
-            const iw = frame.width || 1920;
-            const ih = frame.height || 1080;
+            const iw = img.naturalWidth || 1920;
+            const ih = img.naturalHeight || 1080;
             const cw = targetCanvas.width;
             const ch = targetCanvas.height;
             const scale = Math.max(cw / iw, ch / ih);
@@ -265,34 +269,34 @@ export default function ScrollAnimations() {
             targetCtx.imageSmoothingEnabled = true;
             targetCtx.imageSmoothingQuality = isMobile ? "medium" : "high";
             if (clear) targetCtx.clearRect(0, 0, cw, ch);
-            targetCtx.drawImage(frame, x, y, iw * scale, ih * scale);
+            targetCtx.drawImage(img, x, y, iw * scale, ih * scale);
           };
 
           const updateIntroPreview = (frameNumber: number) => {
             if (!introCanvas || !introCtx || autoIntroComplete) return;
-            const frame = frames.get(frameNumber);
-            if (!frame) return;
-            drawImageToCanvas(introCanvas, introCtx, frame);
+            const img = frames.get(frameNumber);
+            if (!img) return;
+            drawImageToCanvas(introCanvas, introCtx, img);
           };
 
           sizeCanvases();
 
           const drawFrame = (frameNumber: number) => {
-            const frame = frames.get(frameNumber);
-            if (!frame || !ctx) return;
-            drawImageToCanvas(canvas, ctx, frame);
+            const img = frames.get(frameNumber);
+            if (!img || !ctx) return;
+            drawImageToCanvas(canvas, ctx, img);
             currentFrame = frameNumber;
           };
 
           const drawFrameBlend = (fromFrameNumber: number, toFrameNumber: number, progress: number) => {
-            const fromFrame = frames.get(fromFrameNumber);
-            const toFrame = frames.get(toFrameNumber);
-            if (!fromFrame || !toFrame || !ctx) return false;
+            const fromImg = frames.get(fromFrameNumber);
+            const toImg = frames.get(toFrameNumber);
+            if (!fromImg || !toImg || !ctx) return false;
 
-            drawImageToCanvas(canvas, ctx, fromFrame);
+            drawImageToCanvas(canvas, ctx, fromImg);
             ctx.save();
             ctx.globalAlpha = Math.max(0, Math.min(1, progress));
-            drawImageToCanvas(canvas, ctx, toFrame, false);
+            drawImageToCanvas(canvas, ctx, toImg, false);
             ctx.restore();
             currentFrame = progress < 0.5 ? fromFrameNumber : toFrameNumber;
             return true;
@@ -301,6 +305,8 @@ export default function ScrollAnimations() {
           const frameSrc = (frameNumber: number) =>
             new URL(`/frames/frame_${String(frameNumber).padStart(4, "0")}.webp`, window.location.origin).href;
 
+          // Worker fetches blobs only — main thread creates blob URLs and Image elements.
+          // This matches Terminal Industries exactly: no createImageBitmap in worker.
           const createFrameWorker = () => {
             if (typeof Worker === "undefined") return { worker: null, url: null };
 
@@ -308,7 +314,7 @@ export default function ScrollAnimations() {
               const queue = [];
               const queued = new Map();
               const inFlight = new Set();
-              const MAX_CONCURRENT = 5;
+              const MAX_CONCURRENT = 6;
               let active = 0;
               let sequence = 0;
 
@@ -326,7 +332,6 @@ export default function ScrollAnimations() {
                   if (!job) return;
                   queued.delete(job.frameNumber);
                   if (inFlight.has(job.frameNumber)) continue;
-
                   active += 1;
                   inFlight.add(job.frameNumber);
                   load(job).finally(() => {
@@ -340,24 +345,11 @@ export default function ScrollAnimations() {
               const load = async ({ frameNumber, src }) => {
                 try {
                   const response = await fetch(src);
-                  if (!response.ok) throw new Error("Frame fetch failed");
-
+                  if (!response.ok) throw new Error("fetch failed");
                   const blob = await response.blob();
-                  if ("createImageBitmap" in self) {
-                    const bitmap = await createImageBitmap(blob);
-                    self.postMessage({ type: "frame", payload: { frameNumber, bitmap } }, [bitmap]);
-                    return;
-                  }
-
                   self.postMessage({ type: "blob", payload: { frameNumber, blob } });
-                } catch (error) {
-                  self.postMessage({
-                    type: "error",
-                    payload: {
-                      frameNumber,
-                      message: error instanceof Error ? error.message : String(error),
-                    },
-                  });
+                } catch {
+                  self.postMessage({ type: "error", payload: { frameNumber } });
                 }
               };
 
@@ -365,14 +357,11 @@ export default function ScrollAnimations() {
                 if (event.data?.type !== "load") return;
                 const { frameNumber, src, priority = 0 } = event.data.payload;
                 if (inFlight.has(frameNumber)) return;
-
                 const existing = queued.get(frameNumber);
                 if (existing) {
-                  existing.src = src;
                   existing.priority = Math.max(existing.priority, priority);
                   return;
                 }
-
                 const job = { frameNumber, src, priority, sequence: sequence++ };
                 queued.set(frameNumber, job);
                 queue.push(job);
@@ -395,14 +384,27 @@ export default function ScrollAnimations() {
             const callbacks = pendingCallbacks.get(frameNumber);
             if (!callbacks) return;
             pendingCallbacks.delete(frameNumber);
-            callbacks.forEach((callback) => callback());
+            callbacks.forEach((cb) => cb());
           };
 
-          const storeFrame = (frameNumber: number, bitmap: ImageBitmap) => {
-            pending.delete(frameNumber);
-            boostedPending.delete(frameNumber);
-            frames.set(frameNumber, bitmap);
-            runFrameCallbacks(frameNumber);
+          // Create blob URL → HTMLImageElement, store when decoded. Same as TI main thread.
+          const storeBlob = (frameNumber: number, blob: Blob) => {
+            const url = URL.createObjectURL(blob);
+            const img = new Image();
+            img.onload = () => {
+              pending.delete(frameNumber);
+              boostedPending.delete(frameNumber);
+              blobUrls.set(frameNumber, url);
+              frames.set(frameNumber, img);
+              runFrameCallbacks(frameNumber);
+            };
+            img.onerror = () => {
+              URL.revokeObjectURL(url);
+              pending.delete(frameNumber);
+              boostedPending.delete(frameNumber);
+              pendingCallbacks.delete(frameNumber);
+            };
+            img.src = url;
           };
 
           const failFrame = (frameNumber: number) => {
@@ -412,45 +414,28 @@ export default function ScrollAnimations() {
           };
 
           frameWorkerState.worker?.addEventListener("message", (event: MessageEvent) => {
-            const message = event.data as
-              | { type: "frame"; payload: { frameNumber: number; bitmap: ImageBitmap } }
+            const { type, payload } = event.data as
               | { type: "blob"; payload: { frameNumber: number; blob: Blob } }
-              | { type: "error"; payload: { frameNumber: number; message?: string } };
+              | { type: "error"; payload: { frameNumber: number } };
 
-            if (message.type === "frame") {
-              storeFrame(message.payload.frameNumber, message.payload.bitmap);
-              return;
+            if (type === "blob") {
+              storeBlob(payload.frameNumber, payload.blob);
+            } else {
+              // Worker fetch failed — fall back to main thread fetch
+              const fn = payload.frameNumber;
+              fetch(frameSrc(fn))
+                .then((r) => r.blob())
+                .then((blob) => storeBlob(fn, blob))
+                .catch(() => failFrame(fn));
             }
-
-            if (message.type === "blob") {
-              createImageBitmap(message.payload.blob)
-                .then((bitmap) => storeFrame(message.payload.frameNumber, bitmap))
-                .catch(() => failFrame(message.payload.frameNumber));
-              return;
-            }
-
-            pending.delete(message.payload.frameNumber);
-            boostedPending.delete(message.payload.frameNumber);
-            fetchFrameOnMainThread(message.payload.frameNumber, frameSrc(message.payload.frameNumber));
           });
 
-          const fetchFrameOnMainThread = (frameNumber: number, src: string) => {
-            fetch(src)
-              .then((r) => r.blob())
-              .then((blob) => createImageBitmap(blob))
-              .then((bitmap) => storeFrame(frameNumber, bitmap))
-              .catch(() => failFrame(frameNumber));
-          };
-
           const loadFrame = (frameNumber: number, onLoad?: () => void, priority = 0) => {
-            if (frames.has(frameNumber)) {
-              onLoad?.();
-              return;
-            }
+            if (frames.has(frameNumber)) { onLoad?.(); return; }
             if (onLoad) {
-              const callbacks = pendingCallbacks.get(frameNumber) ?? [];
-              callbacks.push(onLoad);
-              pendingCallbacks.set(frameNumber, callbacks);
+              const cbs = pendingCallbacks.get(frameNumber) ?? [];
+              cbs.push(onLoad);
+              pendingCallbacks.set(frameNumber, cbs);
             }
             if (pending.has(frameNumber)) {
               if (priority > 0 && frameWorkerState.worker && !boostedPending.has(frameNumber)) {
@@ -464,23 +449,40 @@ export default function ScrollAnimations() {
             }
             pending.add(frameNumber);
             if (priority > 0) boostedPending.add(frameNumber);
-            const src = frameSrc(frameNumber);
 
             if (frameWorkerState.worker) {
-              frameWorkerState.worker.postMessage({ type: "load", payload: { frameNumber, src, priority } });
-              return;
+              frameWorkerState.worker.postMessage({
+                type: "load",
+                payload: { frameNumber, src: frameSrc(frameNumber), priority },
+              });
+            } else {
+              fetch(frameSrc(frameNumber))
+                .then((r) => r.blob())
+                .then((blob) => storeBlob(frameNumber, blob))
+                .catch(() => failFrame(frameNumber));
             }
-
-            fetchFrameOnMainThread(frameNumber, src);
           };
+
+          // Caption definitions — pure frame ranges, no GSAP involved.
+          // Visibility toggled by CSS transition via .hero-caption--visible class.
+          const captionAnchors = [HOME_FRAME, 216, 410, 547, 680, 780, 895, 1140, 1249];
+          const captionDefs = captionAnchors.map((anchor, i) => {
+            const next = captionAnchors[i + 1];
+            return {
+              el: document.querySelector<HTMLElement>(`.hero-caption--${i + 1}`),
+              start: Math.max(HOME_FRAME, anchor - 20),
+              end: next ? next - 45 : LAST_FRAME,
+            };
+          }).filter((c) => c.el !== null) as Array<{ el: HTMLElement; start: number; end: number }>;
+
+          const heroContentEl = document.querySelector<HTMLElement>(".hero__content");
+          let heroFadedOut = false;
 
           const startScrollFrameLoop = () => {
             let lastFrame = -1;
             let lastBlend = -1;
             let lastEvictAt = HOME_FRAME;
 
-            // Cache scroll bounds so we can read scrollY directly (no GSAP scrub lag).
-            // Re-computed on resize via the handleResize callback below.
             let scrollStart = videoSection.getBoundingClientRect().top + window.scrollY;
             let scrollEnd = scrollStart + videoSection.offsetHeight - window.innerHeight;
             const updateScrollBounds = () => {
@@ -491,13 +493,28 @@ export default function ScrollAnimations() {
             cleanupCallbacks.push(() => window.removeEventListener("resize", updateScrollBounds));
 
             const tick = () => {
-              // Read scroll position directly — zero lag, same approach as Terminal Industries.
               const rawProgress = Math.max(0, Math.min(1, (window.scrollY - scrollStart) / (scrollEnd - scrollStart)));
               const preciseFrame = HOME_FRAME + rawProgress * (LAST_FRAME - HOME_FRAME);
               const roundedFrame = Math.round(preciseFrame);
 
+              // Fade out hero text as soon as scroll begins
+              if (rawProgress > 0.005 && !heroFadedOut) {
+                heroFadedOut = true;
+                if (heroContentEl) {
+                  heroContentEl.style.opacity = "0";
+                  heroContentEl.style.transform = "translateY(-28px)";
+                }
+              }
+
+              // Caption visibility — direct CSS toggle, browser handles the transition
+              for (const { el, start, end } of captionDefs) {
+                const show = preciseFrame >= start && preciseFrame <= end;
+                const isVisible = el.classList.contains("hero-caption--visible");
+                if (show !== isVisible) el.classList.toggle("hero-caption--visible", show);
+              }
+
+              // Frame loading
               if (isMobile) {
-                // Mobile: sliding window — stream ahead and evict behind to cap memory
                 const LOOKAHEAD = 24;
                 const LOOKBEHIND = 10;
                 const loadTo = Math.min(roundedFrame + LOOKAHEAD, LAST_FRAME);
@@ -507,24 +524,25 @@ export default function ScrollAnimations() {
                 if (Math.abs(roundedFrame - lastEvictAt) >= 20) {
                   lastEvictAt = roundedFrame;
                   const keepFrom = Math.max(HOME_FRAME, roundedFrame - LOOKBEHIND);
-                  for (const [key, bitmap] of frames) {
+                  for (const [key, url] of blobUrls) {
                     if (key > HOME_FRAME && key < keepFrom) {
-                      bitmap.close();
+                      URL.revokeObjectURL(url);
+                      blobUrls.delete(key);
                       frames.delete(key);
                     }
                   }
                 }
               } else {
-                // Desktop: keep the active scroll neighborhood ahead of background preloading.
                 const loadTo = Math.min(roundedFrame + 28, LAST_FRAME);
                 for (let f = Math.max(HOME_FRAME, roundedFrame - 2); f <= loadTo; f++) {
                   loadFrame(f, undefined, f <= roundedFrame + 8 ? 10 : 5);
                 }
               }
 
+              // Frame draw
               if (preciseFrame >= MORPH_WINDOW_START && preciseFrame < MORPH_WINDOW_END) {
-                const rawProgress = (preciseFrame - MORPH_WINDOW_START) / (MORPH_WINDOW_END - MORPH_WINDOW_START);
-                const blendProgress = rawProgress * rawProgress * (3 - 2 * rawProgress);
+                const mp = (preciseFrame - MORPH_WINDOW_START) / (MORPH_WINDOW_END - MORPH_WINDOW_START);
+                const blendProgress = mp * mp * (3 - 2 * mp);
                 const blendBucket = Math.round(blendProgress * 48);
                 if (blendBucket !== lastBlend && drawFrameBlend(MORPH_FROM_FRAME, MORPH_TO_FRAME, blendProgress)) {
                   lastBlend = blendBucket;
@@ -537,6 +555,7 @@ export default function ScrollAnimations() {
                   lastBlend = -1;
                 }
               }
+
               rafId = requestAnimationFrame(tick);
             };
             rafId = requestAnimationFrame(tick);
@@ -591,10 +610,11 @@ export default function ScrollAnimations() {
               drawFrame(HOME_FRAME);
               updateIntroPreview(HOME_FRAME);
               frameIntroComplete = true;
-              // Free intro frames (44–79) — no longer needed once hero is visible
               for (let f = FIRST_FRAME; f < HOME_FRAME; f++) {
-                const bmp = frames.get(f);
-                if (bmp) { bmp.close(); frames.delete(f); }
+                const url = blobUrls.get(f);
+                if (url) URL.revokeObjectURL(url);
+                blobUrls.delete(f);
+                frames.delete(f);
               }
               startHeroAfterIntro();
             };
@@ -607,8 +627,6 @@ export default function ScrollAnimations() {
             startAutoIntro();
           }, 1700);
 
-          // Skip black lead-in frames 1–43. Load only the opening frames first
-          // so the cinematic reveal is not competing with the full scroll film.
           for (let i = FIRST_FRAME; i <= HOME_FRAME; i++) {
             loadFrame(i, () => {
               if (i === FIRST_FRAME) {
@@ -620,8 +638,6 @@ export default function ScrollAnimations() {
                 if (loadedInitialFrames === initialFrameCount) {
                   initialFramesReady = true;
                   startAutoIntro();
-                  // Initial frames are in — then enqueue the rest as low-priority
-                  // background work so active scroll frames can jump the queue.
                   if (!isMobile) {
                     window.setTimeout(() => {
                       for (let f = HOME_FRAME + 1; f <= LAST_FRAME; f += 30) loadFrame(f, undefined, 1);
@@ -633,110 +649,8 @@ export default function ScrollAnimations() {
             }, 20);
           }
 
-          // Priority-load the targeted bitmap blend frames. They are used for
-          // the widened frame 156→157 transition during the scroll film.
           loadFrame(MORPH_FROM_FRAME, undefined, 12);
           loadFrame(MORPH_TO_FRAME, undefined, 12);
-
-          // Caption timeline — positions derived from per-frame analysis of Hero_vault.mp4
-          // scroll progress maps frame 120–1249, after the automatic homepage
-          // lead-in plays frames 44–120.
-          const progressForFrame = (frame: number) =>
-            Math.max(0, Math.min(1, (frame - HOME_FRAME) / (LAST_FRAME - HOME_FRAME)));
-          const captionAnchors = [HOME_FRAME, 216, 410, 547, 680, 780, 895, 1140, 1249];
-          const captionWindow = (anchorIndex: number) => {
-            const anchor = captionAnchors[anchorIndex];
-            const nextAnchor = captionAnchors[anchorIndex + 1];
-            // Each caption is visible from 20 frames before its anchor until 45 frames before
-            // the next anchor — guaranteeing a clean 45-frame blackout between captions
-            // so two captions never share the screen even with scrub lag.
-            return {
-              start: Math.max(HOME_FRAME, anchor - 20),
-              end: nextAnchor ? nextAnchor - 45 : LAST_FRAME,
-            };
-          };
-          //
-          // Frame map:
-          //   001–050  : black fade-in
-          //   050–200  : aerial exterior — multiple polyhouses at golden sunrise
-          //   200–280  : entering / walking into the tunnel
-          //   280–400  : lettuce beds
-          //   400–470  : kale rows
-          //   470–535  : cilantro rows
-          //   550–650  : tomatoes on stakes
-          //   650–780  : bell peppers (red + yellow)
-          //   780–870  : ginger / turmeric (broad flat leaves)
-          //   870–950  : black pepper vines
-          //   950–999  : vanilla vines → flower (final shot)
-          const captions = gsap.timeline({ paused: true });
-          gsap.set(".hero-caption", { autoAlpha: 0, y: 22 });
-
-          // Hero content fades out instantly as scroll begins — must be gone before first caption appears
-          captions.to(".hero__content", { autoAlpha: 0, y: -28, duration: 0.015, ease: "power3.in" }, 0);
-
-          const caption1 = captionWindow(0);
-          const caption2 = captionWindow(1);
-          const caption3 = captionWindow(2);
-          const caption4 = captionWindow(3);
-          const caption5 = captionWindow(4);
-          const caption6 = captionWindow(5);
-          const caption7 = captionWindow(6);
-          const caption8 = captionWindow(7);
-          const caption9 = captionWindow(8);
-
-          // Caption 1 — Aerial exterior / polyhouse overview
-          captions
-            .to(".hero-caption--1", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(caption1.start))
-            .to(".hero-caption--1", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(caption1.end));
-
-          // Caption 2 — Entering polyhouse | anchor frame 216
-          captions
-            .to(".hero-caption--2", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(caption2.start))
-            .to(".hero-caption--2", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(caption2.end));
-
-          // Caption 3 — Lettuce beds | anchor frame 410
-          captions
-            .to(".hero-caption--3", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(caption3.start))
-            .to(".hero-caption--3", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(caption3.end));
-
-          // Caption 4 — Kale rows | anchor frame 547
-          captions
-            .to(".hero-caption--4", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(caption4.start))
-            .to(".hero-caption--4", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(caption4.end));
-
-          // Caption 5 — Cilantro rows | anchor frame 680
-          captions
-            .to(".hero-caption--5", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(caption5.start))
-            .to(".hero-caption--5", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(caption5.end));
-
-          // Caption 6 — Tomatoes | anchor frame 780
-          captions
-            .to(".hero-caption--6", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(caption6.start))
-            .to(".hero-caption--6", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(caption6.end));
-
-          // Caption 7 — Bell peppers | anchor frame 895
-          captions
-            .to(".hero-caption--7", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(caption7.start))
-            .to(".hero-caption--7", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(caption7.end));
-
-          // Caption 8 — Ginger, Turmeric, Black pepper | anchor frame 1140
-          captions
-            .to(".hero-caption--8", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(caption8.start))
-            .to(".hero-caption--8", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(caption8.end));
-
-          // Caption 9 — Vanilla | anchor frame 1249, stays visible
-          captions
-            .to(".hero-caption--9", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(caption9.start));
-
-          // CSS sticky handles layout — ScrollTrigger tracks progress through the 1000vh section.
-          // No snap: free-scroll like Terminal Industries so the canvas responds 1:1 to scroll.
-          ScrollTrigger.create({
-            trigger: videoSection,
-            start: "top top",
-            end: "bottom bottom",
-            scrub: 0.08,
-            animation: captions,
-          });
 
           let lastResizeWidth = window.innerWidth;
           const handleResize = () => {
@@ -752,7 +666,8 @@ export default function ScrollAnimations() {
             window.removeEventListener("resize", handleResize);
             frameWorkerState.worker?.terminate();
             if (frameWorkerState.url) URL.revokeObjectURL(frameWorkerState.url);
-            frames.forEach((bitmap) => bitmap.close());
+            blobUrls.forEach((url) => URL.revokeObjectURL(url));
+            blobUrls.clear();
             frames.clear();
             pending.clear();
             pendingCallbacks.clear();

@@ -547,6 +547,7 @@ p {
   max-width: min(42rem, 100%);
   margin-left: max(0rem, calc((100vw - var(--max)) / 2));
   text-shadow: 0 14px 42px rgba(0, 0, 0, 0.44);
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .hero__content.reveal {
@@ -593,9 +594,15 @@ p {
   line-height: 1.1;
   letter-spacing: -0.01em;
   text-shadow: 0 2px 32px rgba(0, 0, 0, 0.7), 0 8px 64px rgba(0, 0, 0, 0.4);
-  visibility: hidden;
   opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
   will-change: transform, opacity;
+}
+
+.hero-caption--visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* All captions: bottom-left anchor, large. Width keeps text to ~40% of screen. */
