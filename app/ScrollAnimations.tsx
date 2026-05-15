@@ -153,14 +153,14 @@ export default function ScrollAnimations() {
         .to(".intro__aperture", {
           scale: 1,
           borderRadius: 0,
-          duration: 2.45,
+          duration: 2.567,
           ease: "power2.out",
         }, 0)
         .to(
           [introTop, introBottom],
           {
             yPercent: (i: number) => (i === 0 ? -100 : 100),
-            duration: 2.45,
+            duration: 2.567,
             ease: "power4.inOut",
           },
           0
@@ -535,11 +535,22 @@ export default function ScrollAnimations() {
             autoIntroStarted = true;
 
             let lastIntroFrame = -1;
+            let panelRevealComplete = false;
+            let frameIntroComplete = false;
+            let heroStarted = false;
             const introStart = performance.now();
-            const introDuration = 2450;
-            revealIntroPanels?.(() => {
+            const introDuration = (initialFrameCount / 30) * 1000;
+
+            const startHeroAfterIntro = () => {
+              if (heroStarted || !panelRevealComplete || !frameIntroComplete) return;
+              heroStarted = true;
               revealHeroText();
               startScrollFrameLoop();
+            };
+
+            revealIntroPanels?.(() => {
+              panelRevealComplete = true;
+              startHeroAfterIntro();
             });
 
             const playIntroFrame = (now: number) => {
@@ -565,11 +576,14 @@ export default function ScrollAnimations() {
 
               autoIntroComplete = true;
               drawFrame(HOME_FRAME);
+              updateIntroPreview(HOME_FRAME);
+              frameIntroComplete = true;
               // Free intro frames (44–79) — no longer needed once hero is visible
               for (let f = FIRST_FRAME; f < HOME_FRAME; f++) {
                 const bmp = frames.get(f);
                 if (bmp) { bmp.close(); frames.delete(f); }
               }
+              startHeroAfterIntro();
             };
 
             requestAnimationFrame(playIntroFrame);
@@ -612,10 +626,22 @@ export default function ScrollAnimations() {
           loadFrame(MORPH_TO_FRAME, undefined, 12);
 
           // Caption timeline — positions derived from per-frame analysis of Hero_vault.mp4
-          // scroll progress maps frame 80–999, after the automatic homepage
-          // lead-in plays frames 44–80.
+          // scroll progress maps frame 120–1249, after the automatic homepage
+          // lead-in plays frames 44–120.
           const progressForFrame = (frame: number) =>
             Math.max(0, Math.min(1, (frame - HOME_FRAME) / (LAST_FRAME - HOME_FRAME)));
+          const captionAnchors = [HOME_FRAME, 216, 410, 547, 680, 780, 895, 1140, 1249];
+          const captionWindow = (anchorIndex: number) => {
+            const anchor = captionAnchors[anchorIndex];
+            const nextAnchor = captionAnchors[anchorIndex + 1];
+            // Each caption is visible from 20 frames before its anchor until 45 frames before
+            // the next anchor — guaranteeing a clean 45-frame blackout between captions
+            // so two captions never share the screen even with scrub lag.
+            return {
+              start: Math.max(HOME_FRAME, anchor - 20),
+              end: nextAnchor ? nextAnchor - 45 : LAST_FRAME,
+            };
+          };
           //
           // Frame map:
           //   001–050  : black fade-in
@@ -632,60 +658,85 @@ export default function ScrollAnimations() {
           const captions = gsap.timeline({ paused: true });
           gsap.set(".hero-caption", { autoAlpha: 0, y: 22 });
 
-          // Hero content fades out as soon as scroll begins
-          captions.to(".hero__content", { autoAlpha: 0, y: -40, duration: 0.04, ease: "power2.in" }, 0);
+          // Hero content fades out instantly as scroll begins — must be gone before first caption appears
+          captions.to(".hero__content", { autoAlpha: 0, y: -28, duration: 0.015, ease: "power3.in" }, 0);
 
-          // Caption 1 — Aerial exterior | frames 080–140
+          const caption1 = captionWindow(0);
+          const caption2 = captionWindow(1);
+          const caption3 = captionWindow(2);
+          const caption4 = captionWindow(3);
+          const caption5 = captionWindow(4);
+          const caption6 = captionWindow(5);
+          const caption7 = captionWindow(6);
+          const caption8 = captionWindow(7);
+          const caption9 = captionWindow(8);
+
+          // Caption 1 — Aerial exterior / polyhouse overview
           captions
-            .to(".hero-caption--1", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(80))
-            .to(".hero-caption--1", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(140));
+            .to(".hero-caption--1", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(caption1.start))
+            .to(".hero-caption--1", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(caption1.end));
 
-          // Caption 2 — Entering polyhouse | frames 170–245 | progress 0.17–0.245
+          // Caption 2 — Entering polyhouse | anchor frame 216
           captions
-            .to(".hero-caption--2", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(170))
-            .to(".hero-caption--2", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(245));
+            .to(".hero-caption--2", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(caption2.start))
+            .to(".hero-caption--2", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(caption2.end));
 
-          // Caption 3 — Lettuce beds | frames 285–390 | progress 0.285–0.39
+          // Caption 3 — Lettuce beds | anchor frame 410
           captions
-            .to(".hero-caption--3", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(285))
-            .to(".hero-caption--3", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(390));
+            .to(".hero-caption--3", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(caption3.start))
+            .to(".hero-caption--3", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(caption3.end));
 
-          // Caption 4 — Kale rows | frames 415–470
+          // Caption 4 — Kale rows | anchor frame 547
           captions
-            .to(".hero-caption--4", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(415))
-            .to(".hero-caption--4", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(470));
+            .to(".hero-caption--4", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(caption4.start))
+            .to(".hero-caption--4", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(caption4.end));
 
-          // Caption 5 — Cilantro rows | frames 485–535, centered on frame 505
+          // Caption 5 — Cilantro rows | anchor frame 680
           captions
-            .to(".hero-caption--5", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(485))
-            .to(".hero-caption--5", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(535));
+            .to(".hero-caption--5", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(caption5.start))
+            .to(".hero-caption--5", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(caption5.end));
 
-          // Caption 6 — Tomatoes | frames 560–645 | progress 0.56–0.645
+          // Caption 6 — Tomatoes | anchor frame 780
           captions
-            .to(".hero-caption--6", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(560))
-            .to(".hero-caption--6", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(645));
+            .to(".hero-caption--6", { autoAlpha: 1, y: 0, duration: 0.03, ease: "power2.out" }, progressForFrame(caption6.start))
+            .to(".hero-caption--6", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(caption6.end));
 
-          // Caption 7 — Bell peppers | frames 665–775 | progress 0.665–0.775
+          // Caption 7 — Bell peppers | anchor frame 895
           captions
-            .to(".hero-caption--7", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(665))
-            .to(".hero-caption--7", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(775));
+            .to(".hero-caption--7", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(caption7.start))
+            .to(".hero-caption--7", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(caption7.end));
 
-          // Caption 8 — Ginger, Turmeric, Black pepper | frames 795–935 | progress 0.795–0.935
+          // Caption 8 — Ginger, Turmeric, Black pepper | anchor frame 1140
           captions
-            .to(".hero-caption--8", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(795))
-            .to(".hero-caption--8", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(935));
+            .to(".hero-caption--8", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(caption8.start))
+            .to(".hero-caption--8", { autoAlpha: 0, y: -14, duration: 0.03 }, progressForFrame(caption8.end));
 
-          // Caption 9 — Vanilla | frames 955–999 | progress 0.955–1.00, stays visible
+          // Caption 9 — Vanilla | anchor frame 1249, stays visible
           captions
-            .to(".hero-caption--9", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(955));
+            .to(".hero-caption--9", { autoAlpha: 1, y: 0, duration: 0.04, ease: "power2.out" }, progressForFrame(caption9.start));
 
-          // CSS sticky handles layout — ScrollTrigger tracks progress through the 800vh section
+          const captionSnapPoints = captionAnchors.map(progressForFrame);
+
+          // CSS sticky handles layout — ScrollTrigger tracks progress through the 1000vh section.
+          // scrub: 0.15 keeps captions tightly coupled to scroll with just enough smoothing
+          // to avoid jitter, while eliminating the lag that caused caption overlaps at 0.5.
           ScrollTrigger.create({
             trigger: videoSection,
             start: "top top",
             end: "bottom bottom",
-            scrub: 0.5,
+            scrub: 0.15,
             animation: captions,
+            ...(!isMobile
+              ? {
+                  snap: {
+                    snapTo: captionSnapPoints,
+                    duration: { min: 0.4, max: 1.0 },
+                    delay: 0.05,
+                    ease: "power2.inOut",
+                    inertia: false,
+                  },
+                }
+              : {}),
           });
 
           let lastResizeWidth = window.innerWidth;
