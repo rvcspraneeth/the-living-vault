@@ -391,10 +391,11 @@ svg {
   display: none;
 }
 
-/* Tall scroll container — hero sticks inside it while video plays */
+/* Tall scroll container — hero sticks inside it while video plays.
+   300vh = 3 viewports of scroll, same density as terminal-industries.com. */
 .hero-scroll {
   position: relative;
-  height: 800vh;
+  height: 300vh;
 }
 
 .section-shell {
@@ -575,7 +576,8 @@ p {
   margin-top: 1.8rem;
 }
 
-/* Scroll-video captions */
+/* Scroll-video captions — TI-style: one tagline through most of the scroll,
+   one endline at the close. CSS transition handles the fade. */
 .hero-captions {
   position: absolute;
   inset: 0;
@@ -585,78 +587,31 @@ p {
 
 .hero-caption {
   position: absolute;
-  max-width: 28rem;
+  bottom: 12%;
+  left: 50%;
+  max-width: min(28ch, 80vw);
   font-family: var(--serif);
-  font-size: clamp(1.35rem, 2.6vw, 2.2rem);
+  font-size: clamp(2.4rem, 5.2vw, 5rem);
   font-weight: 700;
   color: var(--cream);
-  line-height: 1.2;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
-  visibility: hidden;
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+  text-align: center;
+  text-shadow: 0 2px 32px rgba(0, 0, 0, 0.7), 0 8px 64px rgba(0, 0, 0, 0.4);
   opacity: 0;
+  transform: translate(-50%, 22px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
   will-change: transform, opacity;
 }
 
-/* Caption positions matched to video moments (Hero_vault.mp4) */
-
-/* 1 — Aerial exterior → centre so it reads over the full panorama */
-.hero-caption--1 {
-  bottom: 13%;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
+.hero-caption--visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
-/* 2 — Entering polyhouse → left rail, clear of the central path light */
-.hero-caption--2 {
-  bottom: 13%;
-  left: 7%;
-}
-
-/* 3 — Lettuce beds (right side heavier at entry angle) → left for balance */
-.hero-caption--3 {
-  bottom: 13%;
-  left: 7%;
-}
-
-/* 4 — Kale rows (symmetric shot, camera centre) → right to balance left-heavy foliage */
-.hero-caption--4 {
-  bottom: 13%;
-  right: 7%;
-  text-align: right;
-}
-
-/* 5 — Cilantro rows → left clear of the dense foliage */
-.hero-caption--5 {
-  bottom: 13%;
-  left: 7%;
-}
-
-/* 6 — Tomatoes on stakes → left clear of the red cluster close-ups on right */
-.hero-caption--6 {
-  bottom: 13%;
-  left: 7%;
-}
-
-/* 7 — Bell peppers (red + yellow on right side) → left for contrast */
-.hero-caption--7 {
-  bottom: 13%;
-  left: 7%;
-}
-
-/* 8 — Ginger / Turmeric / Black pepper → right, leaves heavier on both sides */
-.hero-caption--8 {
-  bottom: 13%;
-  right: 7%;
-  text-align: right;
-}
-
-/* 9 — Vanilla flower (right side, golden light left) → centre to let the shot breathe */
-.hero-caption--9 {
-  bottom: 13%;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
+.hero-caption--endline {
+  font-size: clamp(1.6rem, 3.2vw, 2.6rem);
+  letter-spacing: 0.02em;
 }
 
 .button {

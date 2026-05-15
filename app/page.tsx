@@ -97,36 +97,10 @@ export default function Home() {
         <section className="hero section-shell" aria-labelledby="hero-title" data-flow-hero>
           <div className="hero__scene" aria-hidden="true">
             <canvas className="hero__canvas" data-hero-canvas />
-            <div className="hero__mist" />
-            <div className="hero__light" />
             <div className="hero__veil" />
             <div className="hero-captions" aria-hidden="true">
-              <p className="hero-caption hero-caption--1">Protected polyhouses. One standard of care.</p>
-              <p className="hero-caption hero-caption--2">Controlled from inside. Built around the crop.</p>
-              <p className="hero-caption hero-caption--3">Lettuce and spinach. Clean crunch, harvested at their best.</p>
-              <p className="hero-caption hero-caption--4">Kale. Curly, structured, cut at colour peak.</p>
-              <p className="hero-caption hero-caption--5">Cilantro. Bright, aromatic bunches cut for clean finish.</p>
-              <p className="hero-caption hero-caption--6">Tomatoes. Vine-ripened and heavy with colour.</p>
-              <p className="hero-caption hero-caption--7">Bell peppers — red and yellow. Glossy fruit buyers notice first.</p>
-              <p className="hero-caption hero-caption--8">Turmeric. Ginger. Black pepper. Roots and vines grown for aroma.</p>
-              <p className="hero-caption hero-caption--9">Vanilla. Hand-pollinated. Slow-cured.</p>
-            </div>
-          </div>
-          <div className="hero__content reveal">
-            <p className="eyebrow">Fresh produce grown with care</p>
-            <h1 id="hero-title">Fresh crops with the color, aroma, and crunch buyers notice first.</h1>
-            <p className="hero__lede">
-              The Living Vault grows vanilla, ginger, turmeric, black pepper, bell pepper,
-              lettuce, kale, spinach, cilantro, and other useful crops inside a protected
-              polyhouse built around freshness, crop finish, and dependable harvest handling.
-            </p>
-            <div className="hero__actions" aria-label="Hero actions">
-              <a className="button button--primary" href="#crops">
-                Explore Our Crops
-              </a>
-              <a className="button button--ghost" href="#science">
-                Quality Standards
-              </a>
+              <p className="hero-caption hero-caption--tagline" id="hero-title">A vault for living crops.</p>
+              <p className="hero-caption hero-caption--endline">Climate-controlled. Hand-tended. Year-round.</p>
             </div>
           </div>
         </section>
