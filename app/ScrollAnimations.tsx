@@ -108,6 +108,27 @@ export default function ScrollAnimations() {
           },
         });
 
+        // Stat band — count up the number when it scrolls into view
+        const statNumber = document.querySelector<HTMLElement>("[data-stat-number]");
+        if (statNumber) {
+          const finalValue = parseInt(statNumber.textContent || "0", 10);
+          const counter = { value: 0 };
+          statNumber.textContent = "0";
+          gsap.to(counter, {
+            value: finalValue,
+            duration: 1.6,
+            ease: "power2.out",
+            onUpdate: () => {
+              statNumber.textContent = Math.round(counter.value).toString();
+            },
+            scrollTrigger: {
+              trigger: statNumber,
+              start: "top 75%",
+              once: true,
+            },
+          });
+        }
+
         // Promise section — pin inner content while words ink up word-by-word.
         // Outer section is 220vh tall; pin holds the inner sticky for the
         // first ~120vh of that scroll, then releases.

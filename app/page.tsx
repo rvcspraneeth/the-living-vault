@@ -83,6 +83,15 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="stat-band" aria-label="Harvest cadence">
+          <div className="stat-band__inner">
+            <p className="stat-band__number" data-stat-number>12</p>
+            <p className="stat-band__divider" aria-hidden="true">&mdash;</p>
+            <p className="stat-band__label">harvests per year</p>
+            <p className="stat-band__sub">where outdoor farms get one.</p>
+          </div>
+        </section>
+
         <section className="crops section-pad reveal" id="crops" aria-labelledby="crops-title">
           <div className="section-heading">
             <p className="eyebrow">What we grow</p>
@@ -126,6 +135,16 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="marquee" aria-label="What we grow">
+          <div className="marquee__track" aria-hidden="true">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <span className="marquee__group" key={i}>
+                Vanilla &middot; Black pepper &middot; Turmeric &middot; Ginger &middot; Bell peppers &middot; Lettuce &middot; Spinach &middot; Kale &middot; Cilantro &middot;{" "}
+              </span>
+            ))}
+          </div>
+        </section>
+
         <section className="pillars section-pad reveal" id="vault" aria-labelledby="pillars-title">
           <div className="section-heading">
             <p className="eyebrow">Inside the vault</p>
@@ -149,6 +168,14 @@ export default function Home() {
               <p className="pillar__line">12 harvests where outdoor farms get one.</p>
             </article>
           </div>
+        </section>
+
+        <section className="quote-band" aria-label="Brand promise">
+          <blockquote className="quote-band__inner">
+            <p className="quote-band__mark" aria-hidden="true">&ldquo;</p>
+            <p className="quote-band__line">We grow what no farm can.</p>
+            <footer className="quote-band__attr">&mdash; The Living Vault</footer>
+          </blockquote>
         </section>
 
         <section className="contact section-pad reveal" id="contact" aria-labelledby="contact-title">
