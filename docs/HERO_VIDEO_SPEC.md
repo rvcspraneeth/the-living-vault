@@ -1,11 +1,27 @@
 # Hero time-lapse — production brief
 
+## Visual direction: cinematic CGI
+
+This is **not** raw photoreal footage. Render as high-end **3D CGI** —
+think architectural visualization, Apple product film, or modern
+animated short. Photoreal but *designed*: smooth materials, controlled
+lighting, volumetric atmosphere, subsurface scattering on the
+polythene. Octane / Blender Cycles / Unreal Engine 5 quality.
+
+Why CGI instead of real time-lapse footage:
+- More controllable result (no weather, shake, or lens dust)
+- Premium "designed" aesthetic matches the brand's quiet & precise voice
+- Easier to nail the exact interior-glow moment
+
+For AI generation prompts that match this direction, see
+[HERO_VIDEO_PROMPTS.md](./HERO_VIDEO_PROMPTS.md).
+
 ## Concept
 
 A locked-off exterior of one polyhouse, **sunrise → night**. No camera
 movement, no cuts. The sky and light do the work. The payoff is the
-interior glow turning on at dusk and burning warm through the polythene
-against the deep-blue night sky.
+interior LED grow-lights igniting at dusk and burning warm through the
+polythene against the deep-blue night sky.
 
 This is the very first thing every visitor sees. It carries the brand line:
 

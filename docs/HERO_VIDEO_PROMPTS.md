@@ -1,239 +1,331 @@
-# Hero time-lapse — generation prompts
+# Hero time-lapse — generation prompts (CGI direction)
 
 Copy-paste-ready prompts for AI image and video generators. Use these to
-produce the 6.5-second hero time-lapse described in
+produce the 6.5-second hero animation described in
 [HERO_VIDEO_SPEC.md](./HERO_VIDEO_SPEC.md).
+
+**Visual direction: cinematic CGI.** Think high-end architectural
+visualization, Apple product film, modern animated short. Photoreal but
+*designed* — smooth materials, controlled lighting, perfect geometry,
+dreamlike atmosphere. Not raw documentary photography.
+
+## Why CGI
+
+- More controllable than photoreal time-lapse (no weather, no dust on
+  lens, no shake)
+- Premium "designed" aesthetic that matches the *quiet & precise* brand
+  voice
+- AI generators are very strong at "Octane / Blender / Unreal" prompts
+- Keyframes hold a consistent look across the day-cycle
+
+---
 
 ## Strategy — pick one
 
 | Strategy | How | Pros | Cons |
 | --- | --- | --- | --- |
-| **A. Single video gen** | One 6-8s prompt to Sora / Veo / Kling / Luma | Fastest, one shot | AI tends to hold one lighting state; rare to get full sunrise→night arc |
-| **B. Keyframes → image-to-video** | Generate 7 still keyframes in Midjourney / Flux, then animate between consecutive pairs in Runway or Kling | Most controllable look, locked-off framing easier to enforce | More steps, requires stitching 6 short clips |
-| **C. 3D render** | Build the scene in Blender / C4D with a sun system | Total control | Slow, needs 3D skill |
+| **A. Single video gen** | One 6-8s prompt to Sora / Veo / Kling / Luma | Fastest, one shot | AI tends to drift the camera; full sunrise→night arc rarely lands |
+| **B. Keyframes → image-to-video** | Generate 7 still keyframes in Midjourney / Flux, then animate between consecutive pairs in Runway / Kling / Luma | Most controllable; locked-off framing easier to enforce | More steps, requires stitching 6 short clips |
+| **C. Full 3D render** | Build the scene in Blender / Cinema 4D, animate the sun and lights | Total control, exact result | Slow, needs 3D artist |
 
-**Recommended for AI: Strategy B.** It guarantees the locked-off camera
-holds and the lighting hits the right beats. The video models drift the
-camera too much for a single 6.5s prompt.
+**Recommended: Strategy B.** Best balance of control and speed for CGI.
 
 ---
 
-## Universal scene description (use as a header in any prompt)
+## Universal style header (paste into every prompt)
 
 ```
-A single white polyhouse (greenhouse with arched polythene roof) on a
-flat farm field. Wide-angle locked-off shot from a low tripod. Polyhouse
-sits in the right third of the frame. Two-thirds sky, one-third ground.
+Cinematic CGI 3D render. Like a high-end architectural visualization
+or Apple product film. Photoreal but designed — perfect geometry,
+smooth materials, controlled lighting. Volumetric lighting, global
+illumination, subsurface scattering through the polyhouse polythene.
+Rendered in the quality of Octane / Blender Cycles / Unreal Engine 5.
+Premium, dreamlike, but grounded. Warm earthy palette. No text, no
+logos. 1920x1080, 16:9.
+```
+
+---
+
+## Universal scene description (paste below the style header)
+
+```
+Subject: a single white arched polyhouse greenhouse on a flat farm
+field. Wide-angle locked-off shot from a low tripod. Polyhouse sits
+in the right third of the frame. Two-thirds sky, one-third ground.
 A thin strip of green crop rows in the foreground. No other buildings,
 no people, no vehicles. No camera movement at all — completely locked
-tripod. Cinematic, photoreal, 1920x1080, 16:9, golden-hour Indian
-countryside, warm earthy palette, no text, no logos.
+tripod.
 ```
 
 ---
 
-## STRATEGY B — Keyframe image prompts
+## STRATEGY B — Keyframe image prompts (CGI)
 
-Generate these 7 stills (Midjourney v6, Flux 1.1 pro, or Imagen 3). Each
-locks the framing identical to the others — same polyhouse position,
-same horizon line, same crop rows in foreground. Only the **sky and
-light** change.
+Generate these 7 stills (Midjourney v6, Flux 1.1 pro, or Imagen 3). Use
+the same `--seed N` across all 7 in Midjourney so the polyhouse
+geometry is identical frame to frame.
 
-### Keyframe 1 — Pre-dawn / blue hour (maps to frame 1)
+### Keyframe 1 — Pre-dawn / blue hour (frame 1)
 ```
-Cinematic photoreal wide shot of a single white arched polyhouse
-greenhouse in an Indian countryside field, pre-dawn blue hour, deep
-indigo sky just turning teal at the horizon, polyhouse appears as a
-silhouette against the gradient sky, mist drifting low across the
-field, no interior light yet, polyhouse in right third of the frame,
-two-thirds sky one-third ground, locked-off low tripod composition,
-strip of green crop rows in foreground, 24mm wide lens, 1920x1080
-16:9, sharp, no people, no vehicles, no text.
+Cinematic CGI 3D render of a single white arched polyhouse greenhouse
+on a flat farm field, pre-dawn blue hour. Photoreal architectural-
+visualization quality. Polyhouse offset right third, two-thirds sky.
+Deep indigo sky turning teal at the horizon, polyhouse appears as a
+matte silhouette against the gradient. Soft volumetric mist drifting
+low across the field. No interior light yet. Subtle global
+illumination, smooth polythene material with faint subsurface
+scattering, perfect crop rows in foreground. Octane / Unreal 5
+quality render. 1920x1080 16:9, locked-off low tripod composition.
+No text, no people.
 ```
 
 ### Keyframe 2 — Sunrise (frame 50)
 ```
-Same locked-off framing as before — single white arched polyhouse in
-the right third, two-thirds sky one-third ground. Sun cresting the
-horizon left of the polyhouse, warm orange and magenta gradient sky,
-long warm rays hitting the polythene roof making it glow amber, mist
-still hugging the ground, polyhouse silhouette catching first light,
-no interior light yet, cinematic photoreal, 1920x1080 16:9.
+Same cinematic CGI scene, identical polyhouse position. Sun cresting
+the horizon left of the polyhouse, warm orange-magenta gradient sky,
+strong volumetric god-rays cutting across the field. Polythene roof
+catches first warm light with believable subsurface scatter, glowing
+faint amber from within the material. Mist still hugging the ground
+catching the rays. Cinematic CGI render, Octane quality, designed
+photoreal. 1920x1080 16:9.
 ```
 
 ### Keyframe 3 — Mid-morning (frame 130)
 ```
-Same locked-off framing — single white arched polyhouse in the right
-third. Bright clear morning sky, soft cumulus clouds drifting, cool
-white daylight, polythene roof gleaming bright, crisp shadows on the
-ground, sharp green crop rows in foreground, photoreal landscape,
-1920x1080 16:9.
+Same cinematic CGI scene. Bright clear morning sky, designed cumulus
+clouds with rim-lit edges, cool clean daylight. Polythene roof
+gleaming with controlled highlight rolloff. Sharp crisp shadows on
+the ground, perfect crop rows lit evenly. Premium architectural-
+visualization look, Octane / Unreal 5 quality render. 1920x1080 16:9.
 ```
 
 ### Keyframe 4 — Late afternoon (frame 230)
 ```
-Same locked-off framing — single white arched polyhouse in the right
-third. Late afternoon sun lower in the sky, warm white light, soft
-clouds, slightly warmer tone than midday, crop rows casting long soft
-shadows, polythene catching warm reflections, photoreal landscape,
-1920x1080 16:9.
+Same cinematic CGI scene. Afternoon sun lower in the sky, warm white
+key light, sculpted soft clouds, slightly warmer tone than midday.
+Crop rows casting long soft shadows, polythene catching warm
+reflections with subsurface glow. Cinematic CGI render, Octane
+quality. 1920x1080 16:9.
 ```
 
 ### Keyframe 5 — Golden hour (frame 285)
 ```
-Same locked-off framing — single white arched polyhouse in the right
-third. Deep golden hour, sun very low casting long amber shadows
-across the field, sky fading from gold near the horizon to soft peach
-above, polyhouse glowing warm amber, polythene roof reflecting golden
-light, photoreal cinematic, 1920x1080 16:9.
+Same cinematic CGI scene. Deep golden hour, sun very low casting
+long amber shadows across the field. Sky fading from gold near the
+horizon to peach above. Polyhouse glowing rich warm amber, polythene
+roof translucent with strong subsurface scattering, the structure
+reads as a glowing lantern bathed in golden light. Volumetric haze
+catching the low sun. Cinematic CGI render, Octane / Unreal 5
+quality. 1920x1080 16:9.
 ```
 
 ### Keyframe 6 — Dusk, interior lights on (frame 330)
 ```
-Same locked-off framing — single white arched polyhouse in the right
-third. Deep dusk, sky gone from amber to deep teal and pink-violet,
-horizon glowing dim coral, **interior LED grow-lights inside the
-polyhouse are now ON**, polyhouse glowing warm white and faintly pink
-from within, light spilling out through the polythene against the
-darkening sky, the polyhouse looks like a lantern, photoreal
-cinematic, 1920x1080 16:9.
+Same cinematic CGI scene. Deep dusk, sky gone from amber to deep
+teal and pink-violet, horizon glowing dim coral. The polyhouse
+interior LED grow-lights are now ON — strong warm-white and faintly
+pink light pours through the polythene from inside, the polyhouse
+glows like a designed lantern against the cooling sky. Strong
+subsurface scattering through the polythene, soft volumetric light
+spill onto the surrounding ground showing the crop rows in warm
+light. Cinematic CGI render, Octane / Unreal 5 quality, designed
+photoreal. 1920x1080 16:9.
 ```
 
 ### Keyframe 7 — Night (frame 390)
 ```
-Same locked-off framing — single white arched polyhouse in the right
-third. Full night, deep navy-black sky with faint stars, polyhouse
-glowing brightly from within with warm white and pink LED grow-light,
-the polyhouse reads as a warm lantern against pure dark, light spills
-softly onto the surrounding ground showing the crop rows, photoreal
-cinematic, 1920x1080 16:9.
+Same cinematic CGI scene. Full night, deep navy-black sky with faint
+stars. Polyhouse glowing brightly from within with warm white and
+soft pink LED grow-light, reading as a perfect lantern against the
+dark. Volumetric light spills softly onto the ground showing the
+crop rows in warm radiance. Subsurface scatter through the polythene
+is the dominant light source in the scene. Cinematic CGI render,
+Octane / Unreal 5 quality, premium architectural-visualization
+aesthetic. 1920x1080 16:9.
 ```
 
-**Critical tip for keyframes:** in Midjourney use `--ar 16:9 --style raw
---v 6.1 --seed N` where N is a fixed seed across all 7. Re-roll the
-prompt parameters until keyframe 1 looks right, then reuse the same seed
-for keyframes 2–7 to keep the polyhouse and ground geometry consistent.
+**Critical tip for keyframes:** in Midjourney use
+`--ar 16:9 --style raw --v 6.1 --seed N` where N is a fixed seed across
+all 7. Re-roll keyframe 1 until you love it, then reuse the same seed
+for keyframes 2–7 — same polyhouse and ground geometry, only the sky
+and light change.
 
 ---
 
 ## STRATEGY B — Image-to-video transition prompts
 
-Feed keyframe N as the start image and keyframe N+1 as the end image.
-Tools that support start+end frame: **Runway Gen-4 Aleph, Kling 2.0,
-Luma Ray 2.**
+Feed keyframe N as start image and keyframe N+1 as end image.
+Tools that support start+end: **Runway Gen-4, Kling 2.0, Luma Ray 2.**
 
 You need 6 transitions:
 
 | # | Start | End | Duration |
 | --- | --- | --- | --- |
-| T1 | Keyframe 1 (pre-dawn) | Keyframe 2 (sunrise) | ~0.8s |
-| T2 | Keyframe 2 (sunrise) | Keyframe 3 (mid-morning) | ~1.3s |
-| T3 | Keyframe 3 (mid-morning) | Keyframe 4 (late afternoon) | ~1.7s |
-| T4 | Keyframe 4 (late afternoon) | Keyframe 5 (golden hour) | ~0.9s |
-| T5 | Keyframe 5 (golden hour) | Keyframe 6 (dusk + lights on) | ~0.8s |
-| T6 | Keyframe 6 (dusk) | Keyframe 7 (night) | ~1.0s |
+| T1 | Keyframe 1 | Keyframe 2 | ~0.8s |
+| T2 | Keyframe 2 | Keyframe 3 | ~1.3s |
+| T3 | Keyframe 3 | Keyframe 4 | ~1.7s |
+| T4 | Keyframe 4 | Keyframe 5 | ~0.9s |
+| T5 | Keyframe 5 | Keyframe 6 | ~0.8s |
+| T6 | Keyframe 6 | Keyframe 7 | ~1.0s |
 
-**Universal transition prompt (use on each transition):**
-
+### T1 — Pre-dawn → Sunrise *(~0.8s)*
 ```
-Locked-off tripod time-lapse. No camera movement at all. The polyhouse
-must stay in the exact same position in frame throughout — only the sky
-and light change. Smooth time-lapse motion: clouds drift across the sky,
-shadows lengthen, light shifts from start frame to end frame. No
-zooming, no panning, no parallax. 60fps, cinematic photoreal.
-```
-
-After generating each clip, **trim to the durations above** and
-concatenate in order:
-
-```bash
-ffmpeg -f concat -safe 0 -i clips.txt -c copy hero.mp4
+Locked-off tripod time-lapse, cinematic CGI 3D render quality. No
+camera movement at all — only sky and light change. Polyhouse stays
+anchored in the exact same pixel position throughout. Smooth time-
+lapse from blue-hour pre-dawn into sunrise breaking: the indigo sky
+warms to teal, then to amber and magenta along the horizon as the
+volumetric sun cresting begins, god-rays start to cut through the
+mist. Mist drifts slowly across the ground catching the new light.
+No zoom, no pan, no parallax. CGI cinematic render, 60fps.
 ```
 
-where `clips.txt` is:
+### T2 — Sunrise → Mid-morning *(~1.3s)*
 ```
-file 'T1.mp4'
-file 'T2.mp4'
-file 'T3.mp4'
-file 'T4.mp4'
-file 'T5.mp4'
-file 'T6.mp4'
+Locked-off tripod CGI time-lapse, zero camera movement. Polyhouse
+fixed in the same frame position. Smooth transition from warm
+amber-magenta sunrise to bright clear morning daylight: sky
+desaturates from amber into clean blue, designed cumulus clouds
+form and drift across frame, mist burns off the ground, polythene
+roof shifts from amber subsurface glow to crisp white highlight.
+Cinematic CGI render, Octane quality, 60fps.
 ```
 
-Then convert to 390 WebP frames:
-
-```bash
-ffmpeg -i hero.mp4 -vf "fps=60,scale=1920:1080" -q:v 82 public/frames/frame_%04d.webp
+### T3 — Mid-morning → Late afternoon *(~1.7s)*
 ```
+Locked-off tripod CGI time-lapse. Camera absolutely static. Smooth
+mid-day-to-afternoon transition: cool white morning daylight
+gradually warms into a softer afternoon tone, designed clouds drift
+across the sky from left to right, shadows on the ground rotate and
+lengthen, polythene roof shifts from bright white to warmer cream
+subsurface reflections. Polyhouse stays anchored in the same pixel
+position. Cinematic CGI render, 60fps.
+```
+
+### T4 — Late afternoon → Golden hour *(~0.9s)*
+```
+Locked-off tripod CGI time-lapse, no camera movement. Smooth
+transition into golden hour: sun drops lower, sky deepens to amber
+and peach, shadows lengthen dramatically across the field, polyhouse
+glows warm amber with strong subsurface scattering through the
+polythene, foreground crop rows turn bright lime-green where golden
+light hits them, volumetric haze appears catching the low sun.
+Cinematic CGI render, 60fps.
+```
+
+### T5 — Golden hour → Dusk + interior lights on *(~0.8s)* ⭐ brand beat
+```
+Locked-off tripod CGI time-lapse, camera completely static. Smooth
+transition from golden hour to dusk: sky cools rapidly from amber
+into deep teal and pink-violet, horizon glows faint coral. As the
+sky darkens, the polyhouse interior LED grow-lights ignite — first
+a soft warm-white glow growing through the polythene from inside,
+then brightening so the polyhouse reads as a designed lantern
+against the cooling sky. Strong subsurface scattering takes over,
+warm volumetric light begins to spill onto the surrounding ground.
+Polyhouse stays anchored in the same pixel position. Cinematic CGI
+render, 60fps.
+```
+
+### T6 — Dusk → Night *(~1.0s)*
+```
+Locked-off tripod CGI time-lapse, camera does not move. Smooth
+transition from dusk to full night: remaining pink and teal in the
+sky drain to deep navy-black, faint stars emerge, the polyhouse's
+interior glow becomes the dominant light source in the frame,
+volumetric warm white and pink light spills onto the ground
+revealing the crop rows in soft radiance. The polyhouse reads as
+a glowing lantern against pure dark. No zoom, no pan, no parallax.
+Cinematic CGI render, Octane / Unreal 5 quality, 60fps.
+```
+
+### Universal camera-lock stub (paste if a transition drifts)
+> Camera: completely static, locked tripod, fixed wide shot. The frame
+> edges must not move at all. The polyhouse must stay anchored at the
+> exact same pixel position from the first frame to the last frame.
+> This is a CGI time-lapse — only the contents inside the static frame
+> change (sky, light, clouds, shadows, interior glow). Treat the
+> polyhouse as bolted in place.
 
 ---
 
 ## STRATEGY A — Single-shot video prompts (if you want to try one clip)
 
-Use these on Sora, Veo 3, Kling 2, Luma Ray 2. Lower success rate but
-fastest. Generate at 1920x1080 16:9, 6–8 seconds.
+Use these on Sora 2, Veo 3, Kling 2, Luma Ray 2. Lower success rate
+but fastest. Generate at 1920x1080 16:9, 6–8 seconds.
 
 ### Sora 2 / Veo 3
 ```
-A 6.5-second cinematic time-lapse from a completely locked-off tripod.
-Subject: a single white arched polyhouse greenhouse on a flat Indian
-farm field, positioned in the right third of the frame. Two-thirds sky,
+A 6.5-second cinematic CGI time-lapse from a completely locked-off
+tripod. Cinematic CGI 3D render quality — like a high-end
+architectural visualization or Apple product film. Photoreal but
+designed: perfect geometry, smooth materials, controlled lighting,
+volumetric atmosphere, subsurface scattering on polythene.
+
+Subject: a single white arched polyhouse greenhouse on a flat farm
+field, positioned in the right third of the frame. Two-thirds sky,
 one-third ground. A thin strip of green crop rows in the foreground.
 
-The shot is one continuous unbroken time-lapse from pre-dawn to night
-in 6.5 seconds:
+The shot is one continuous unbroken time-lapse from pre-dawn to
+night in 6.5 seconds:
 
-Pre-dawn blue hour with mist on the ground → sunrise breaking with
-warm orange sky and magenta horizon → bright cool midday with drifting
-clouds → warm golden afternoon with long shadows → deep golden hour
-with amber light glazing the polythene → dusk transitioning to deep
-teal and pink sky, and at the dusk moment the polyhouse interior LED
-grow-lights ignite and the polyhouse glows warm from within → full
-night with deep navy sky and the polyhouse glowing like a warm lantern
-against the dark.
+Pre-dawn blue hour with volumetric mist on the ground →
+amber-magenta sunrise breaking with god-rays through the mist →
+bright cool midday with designed drifting clouds and crisp shadows →
+warm golden afternoon with long shadows → deep golden hour with
+amber subsurface scatter on the polythene → dusk transitioning to
+deep teal and pink sky, and at the dusk moment the polyhouse
+interior LED grow-lights ignite and the polyhouse glows warm from
+within like a designed lantern → full night with deep navy sky and
+the polyhouse glowing warm against the dark.
 
-Absolutely no camera movement — no pan, no tilt, no zoom, no parallax.
-Only the sky, light, clouds, and the interior light igniting moment
-change. Photoreal cinematic, 60fps, 1920x1080. No text, no logos, no
-people, no vehicles.
+Absolutely no camera movement — no pan, no tilt, no zoom, no
+parallax. Only the sky, light, clouds, and the interior light
+igniting moment change. Cinematic CGI render, Octane / Unreal 5
+quality, 60fps, 1920x1080. No text, no logos, no people, no
+vehicles.
 ```
 
-### Kling 2 / Luma Ray 2
+### Kling 2 / Luma Ray 2 (concise)
 ```
-Locked-off cinematic time-lapse, 24 hours compressed to 6.5 seconds.
-Wide shot of a single white arched polyhouse in an Indian field, right
-third of frame, two-thirds sky.
+Locked-off cinematic CGI time-lapse, 24 hours compressed to 6.5
+seconds. Cinematic 3D render, Octane / Unreal 5 quality, photoreal
+but designed.
 
-Time arc: pre-dawn blue hour → warm orange sunrise → bright cool
-midday → warm afternoon → deep golden hour → dusk with the polyhouse
-interior lights snapping on around the 5-second mark → starlit night
-with the polyhouse glowing warm from within like a lantern.
+Wide shot of a single white arched polyhouse in an Indian field,
+right third of frame, two-thirds sky.
+
+Time arc: pre-dawn blue hour → amber sunrise with god-rays through
+mist → bright cool midday → warm afternoon → deep golden hour with
+amber subsurface scatter → dusk with interior lights snapping on
+around the 5-second mark → starlit night with the polyhouse glowing
+warm from within like a designed lantern.
 
 Static tripod camera, zero movement. Only sky and light animate.
-Photoreal, 60fps, 1920x1080, cinematic color grading, no people, no
-text.
+CGI cinematic, warm earthy palette, no people, no text. 60fps,
+1920x1080.
 ```
 
-### Runway Gen-4
+### Runway Gen-4 (most concise)
 ```
-Time-lapse, locked tripod, no camera movement. White polyhouse
-greenhouse in the right third of a wide farm-field shot, two-thirds
-sky. Sky cycles from pre-dawn blue, to sunrise orange, to midday
-white, to golden hour amber, to dusk teal-pink, to navy night. Around
-the dusk moment the polyhouse interior glows warm from within and
-holds glowing into the night. Photoreal cinematic. 1920x1080, 60fps,
-6.5 seconds. No people, no text, no zoom.
+Cinematic CGI time-lapse, locked tripod, no camera movement. 3D-
+rendered photoreal polyhouse greenhouse in the right third of a
+wide farm-field shot, two-thirds sky. Sky cycles from pre-dawn
+blue, to sunrise orange, to midday white, to golden hour amber, to
+dusk teal-pink, to navy night. Around the dusk moment the polyhouse
+interior glows warm from within, holds glowing into the night.
+Octane / Unreal 5 quality. 1920x1080, 60fps, 6.5 seconds. No
+people, no text, no zoom.
 ```
 
 ---
 
 ## Post-processing — get to 390 WebP frames
 
-Whichever path you used, you end up with one `hero.mp4` (or similar). To
-convert to the exact frame format the website expects:
+Whichever path you used, you end up with one `hero.mp4`. Convert to
+the exact frame format the website expects:
 
 ```bash
-# Resize / normalize to 1920x1080 60fps, then extract WebP frames
 ffmpeg -i hero.mp4 \
   -vf "fps=60,scale=1920:1080:flags=lanczos" \
   -frames:v 390 \
@@ -247,7 +339,7 @@ Verify:
 ls public/frames/frame_*.webp | wc -l   # should print 390
 ```
 
-Then update `app/ScrollAnimations.tsx`:
+Update `app/ScrollAnimations.tsx`:
 
 ```ts
 const FIRST_FRAME = 1;
