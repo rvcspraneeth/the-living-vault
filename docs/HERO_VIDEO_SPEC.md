@@ -11,17 +11,20 @@ polythene. Octane / Blender Cycles / Unreal Engine 5 quality.
 Why CGI instead of real time-lapse footage:
 - More controllable result (no weather, shake, or lens dust)
 - Premium "designed" aesthetic matches the brand's quiet & precise voice
-- Easier to nail the exact interior-glow moment
+- Easier to nail the exact lighting beats
+- Can render a believable polyhouse complex without filming permits
 
 For AI generation prompts that match this direction, see
 [HERO_VIDEO_PROMPTS.md](./HERO_VIDEO_PROMPTS.md).
 
 ## Concept
 
-A locked-off exterior of one polyhouse, **sunrise → night**. No camera
-movement, no cuts. The sky and light do the work. The payoff is the
-interior LED grow-lights igniting at dusk and burning warm through the
-polythene against the deep-blue night sky.
+A locked-off exterior of a **polyhouse complex** (4–6 arched polyhouses
+arranged in parallel rows), **sunrise → sunset**. No camera movement,
+no cuts. The sky and light do the work. The payoff is the deepest
+**golden hour** moment when the entire complex is bathed in amber
+light, polythene glowing from sun penetration, long warm shadows
+stretching across the field.
 
 This is the very first thing every visitor sees. It carries the brand line:
 
@@ -46,66 +49,38 @@ These values are wired into the website. Any deviation breaks the player.
 
 ## Camera and framing
 
-- **Locked tripod.** Heavy or sandbagged. Zero shake, zero movement across
-  the full 24-hour shoot. If the shot drifts between frames, the canvas
+- **Locked tripod.** Heavy or sandbagged. Zero shake, zero movement
+  across the full clip. If the shot drifts between frames, the canvas
   player will reveal it instantly.
-- **Wide lens**: 24–35mm full-frame equivalent. Show the full polyhouse
-  plus at least 40% sky.
-- **Composition**: polyhouse offset slightly left or right (rule of
-  thirds). Horizon on the lower third. Sky takes the upper two-thirds —
-  it's where most of the visual story happens.
-- **Hero polyhouse only.** Adjacent polyhouses can sit at the edges, but
-  one polyhouse is the star.
-- **Foreground**: a sliver of green or soil at the bottom for depth.
-- **Manual focus, locked.** Manual white balance, locked for the daylight
-  half of the shoot — let it ride through dusk into night.
+- **Wide lens**: 24–35mm full-frame equivalent. Show the full complex
+  plus at least 50% sky.
+- **Composition**: the polyhouse complex spans the middle of the frame
+  in slight perspective (rows receding into mid-distance). Horizon on
+  the lower third. Sky takes the upper two-thirds — it's where most of
+  the visual story happens.
+- **4–6 polyhouses** in parallel rows. They can be identical, slightly
+  varied in position. The viewer should immediately read "this is a
+  whole operation, not one shed."
+- **Foreground**: a sliver of green or soil at the bottom with crop
+  rows leading into the polyhouses, for depth.
+- **Manual focus, locked.** Manual white balance.
 
 ## Time arc (frame mapping)
 
 | Frames | Moment | Light feel |
 | --- | --- | --- |
-| 1–40 | Pre-dawn / blue hour | Cold blue. Polyhouse silhouette. No interior light yet. |
-| 40–90 | Sunrise breaking | Warm orange and magenta horizon. Mist drifting if season allows. |
-| 90–180 | Morning to midday | Cool whites. Sky brightens. Polythene gleams. |
-| 180–260 | Afternoon | Stable warm white. Slow drift in clouds and shadow. |
-| 260–310 | Golden hour | Long warm shadows. Polyhouse glows amber. |
-| 310–355 | Dusk | Sky goes deep teal and pink. **Interior lights snap on around frame 330.** |
-| 355–390 | Night | Black-blue sky. Polyhouse glowing warm from within — the vault. |
+| 1–40 | Pre-dawn / blue hour | Cold blue. Polyhouse complex in silhouette. Mist drifting low. |
+| 40–100 | Sunrise breaking | Warm orange and magenta horizon. God-rays through mist. Polythene catches first amber light. |
+| 100–180 | Mid-morning to midday | Cool whites, designed clouds, polythene gleams bright. Sharp shadows. |
+| 180–260 | Afternoon | Stable warm white. Slow drift in clouds. Shadows lengthen. |
+| 260–340 | **Golden hour — the brand beat** | Long warm amber shadows. Polythene roofs glow rich amber with strong subsurface scatter. The complex reads as a row of glowing vaults bathed in golden light. |
+| 340–390 | Sunset hold | Sun touching the horizon, sky deepens to peach + magenta + violet edge. Polyhouses still warmly lit, final cinematic hold. |
 
-**The interior-light-on moment around frame 330 is the brand beat.** That is
-where the closing line *"Climate-controlled. Hand-tended. Year-round."*
-appears in the scroll. It must be unmistakable.
-
-## How to capture — three paths
-
-### Option A — Real time-lapse (recommended for authenticity)
-
-- 24-hour continuous shoot. Single fixed DSLR or mirrorless body.
-- Interval: **~221 seconds per frame** (24 × 3600 ÷ 390).
-- Use an intervalometer.
-- Lock focus and white balance manually. Aperture-priority for exposure
-  works well; allow ISO to auto with a sensible cap so the sky and night
-  range works.
-- The interior polyhouse lights must be on a timer set to switch on at
-  the right point in real time — roughly the time-of-day that maps to
-  frame 330. Compute that based on the shoot date's sunset.
-- Have a contingency for weather, lens dust, and condensation. Run a
-  test at dusk before the real 24-hour shoot.
-
-### Option B — 3D render (Blender, Cinema 4D, Octane, Redshift)
-
-- Full control. Skydome animated through a 24-hour cycle.
-- Build or source a polyhouse model with realistic polythene shader.
-- Render 390 frames at 1920×1080, output WebP directly (or PNG then
-  convert via the project's WebP script).
-- Allow 1–2 weeks for a polished result.
-
-### Option C — AI generation (Sora, Veo, Runway, Luma)
-
-- Fastest path. Generate as a single 6.5-second clip then extract frames.
-- Risk: AI generators may drift or wobble — the locked-off shot can
-  shift between frames, which will read as jitter on the canvas player.
-- Test with a 1-second sample before committing.
+**The deepest golden hour moment around frame 300 is the brand beat.**
+That is where the closing line *"Climate-controlled. Hand-tended.
+Year-round."* appears in the scroll. Every polyhouse glowing amber,
+polythene translucent with subsurface light — it must say *vault* in
+one frame.
 
 ## After delivery — what happens on the code side
 
