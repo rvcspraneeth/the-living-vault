@@ -28,6 +28,25 @@
 html {
   scroll-behavior: smooth;
   overscroll-behavior: none;
+  scrollbar-color: var(--silver) var(--bg);
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--silver);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--subtle);
 }
 
 body {
