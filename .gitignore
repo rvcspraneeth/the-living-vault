@@ -29,3 +29,8 @@ Thumbs.db
 
 # Claude
 .claude/
+
+# Source media artifacts — not shipped, only their derived frames are
+public/videos/hero-v2.mp4
+public/videos/frames/
+public/sunset/

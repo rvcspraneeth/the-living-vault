@@ -132,22 +132,48 @@ export default function ScrollAnimations() {
         // Promise section — pin inner content while words ink up word-by-word.
         // Outer section is 220vh tall; pin holds the inner sticky for the
         // first ~120vh of that scroll, then releases.
-        const promiseWords = gsap.utils.toArray<HTMLElement>(".promise__word");
-        if (promiseWords.length) {
-          gsap.to(promiseWords, {
-            color: "var(--ink)",
-            stagger: 0.08,
+        // Promise — TI-pattern numbered scroll. As each bullet enters the
+        // viewport center, mark it active, cross-fade to its video frame,
+        // and play that video while pausing the others.
+        const promiseBullets = gsap.utils.toArray<HTMLElement>("[data-promise-bullet]");
+        const promiseFrames = gsap.utils.toArray<HTMLElement>("[data-promise-frame]");
+        const promiseVideos = gsap.utils.toArray<HTMLVideoElement>("[data-promise-video]");
+        promiseBullets.forEach((bullet, idx) => {
+          ScrollTrigger.create({
+            trigger: bullet,
+            start: "top 60%",
+            end: "bottom 40%",
+            onEnter: () => activatePromise(idx),
+            onEnterBack: () => activatePromise(idx),
+          });
+        });
+        function activatePromise(idx: number) {
+          promiseBullets.forEach((b, i) => b.classList.toggle("is-active", i === idx));
+          promiseFrames.forEach((f, i) => f.classList.toggle("is-active", i === idx));
+          promiseVideos.forEach((v, i) => {
+            if (i === idx) {
+              v.play().catch(() => {});
+            } else {
+              v.pause();
+            }
+          });
+        }
+
+        // Progress bar — fills as scroll moves through the promise section.
+        const promiseProgress = document.querySelector<HTMLElement>("[data-promise-progress]");
+        if (promiseProgress) {
+          gsap.to(promiseProgress, {
+            width: "100%",
             ease: "none",
             scrollTrigger: {
               trigger: ".promise",
-              start: "top top",
-              end: "+=120%",
-              pin: "[data-promise-pin]",
-              pinSpacing: true,
-              scrub: 0.5,
+              start: "top 70%",
+              end: "bottom 80%",
+              scrub: 0.3,
             },
           });
         }
+
 
         // Scroll video — same architecture as terminal-industries.com:
         //   - Worker fetches blobs only
@@ -160,10 +186,9 @@ export default function ScrollAnimations() {
         if (videoSection && canvas) {
           const ctx = canvas.getContext("2d");
 
-          // Frame range — placeholder until time-lapse footage is shot.
-          // Final spec: ~400 frames at 60fps, locked-exterior sunrise→night.
-          const FIRST_FRAME = 54;
-          const LAST_FRAME = 444;
+          // Frame range — hero-v2.mp4 → 390 frames @ 60fps, 1920x1080 WebP.
+          const FIRST_FRAME = 1;
+          const LAST_FRAME = 390;
 
           const frames = new Map<number, HTMLImageElement>();
           const blobUrls = new Map<number, string>();

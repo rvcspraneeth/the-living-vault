@@ -67,19 +67,79 @@ export default function Home() {
         </section>
         </div>
 
-        <section className="promise" aria-labelledby="promise-title">
-          <div className="promise__inner" data-promise-pin>
-            <span className="promise__accent" aria-hidden="true" />
-            <p className="promise__eyebrow">01 &mdash; The promise</p>
-            <h2 id="promise-title" className="promise__line">
-              {"Outside, weather decides.".split(" ").map((w) => (
-                <span className="promise__word" key={`o-${w}`}>{w}&nbsp;</span>
-              ))}
-              <br />
-              {"Inside, we do.".split(" ").map((w) => (
-                <span className="promise__word" key={`i-${w}`}>{w}&nbsp;</span>
-              ))}
+        <section className="promise" id="vault" aria-labelledby="promise-title">
+          <div className="promise__progress" aria-hidden="true">
+            <div className="promise__progress-fill" data-promise-progress />
+          </div>
+          <div className="promise__inner">
+            <h2 id="promise-title" className="promise__headline">
+              <span className="promise__headline-line">Outside, weather decides.</span>
+              <span className="promise__headline-line">Inside, we do.</span>
             </h2>
+            <div className="promise__scroll">
+              <div className="promise__bullets">
+                {[
+                  { i: "01", title: "Monsoon doesn’t decide.", body: "Outside, six months of rain. Inside, the humidity stays where it should.", video: "/videos/promise-monsoon.mp4" },
+                  { i: "02", title: "Heat doesn’t decide.", body: "Outside, forty-two degrees. Inside, twenty-four — dialed by the hour.", video: "/videos/promise-heat.mp4" },
+                  { i: "03", title: "Seasons don’t decide.", body: "Outside, one harvest a year. Inside, twelve.", video: "/videos/promise-seasons.mp4" },
+                ].map((b, idx) => (
+                  <div className="promise__bullet" key={b.i} data-promise-bullet={idx}>
+                    <p className="promise__index" aria-label={b.i}>
+                      <span className="promise__index-digit" aria-hidden="true">0</span>
+                      <span className="promise__index-digit promise__index-digit--accent" aria-hidden="true">{b.i.slice(1)}</span>
+                    </p>
+                    <p className="promise__title">{b.title}</p>
+                    <p className="promise__body">{b.body}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="promise__media-col" aria-hidden="true">
+                <div className="promise__media">
+                  <div
+                    className="promise__media-frame is-active"
+                    data-promise-frame={0}
+                    style={{ background: "linear-gradient(160deg, #3f4a55 0%, #5f6c78 50%, #8b939c 100%)" }}
+                  >
+                    <video
+                      data-promise-video={0}
+                      src="/videos/promise-monsoon.mp4"
+                      muted
+                      loop
+                      playsInline
+                      preload="metadata"
+                    />
+                  </div>
+                  <div
+                    className="promise__media-frame"
+                    data-promise-frame={1}
+                    style={{ background: "linear-gradient(160deg, #f5c875 0%, #d99540 50%, #7a4b1c 100%)" }}
+                  >
+                    <video
+                      data-promise-video={1}
+                      src="/videos/promise-heat.mp4"
+                      muted
+                      loop
+                      playsInline
+                      preload="metadata"
+                    />
+                  </div>
+                  <div
+                    className="promise__media-frame"
+                    data-promise-frame={2}
+                    style={{ background: "linear-gradient(95deg, #cde0e8 0%, #b8d4a0 33%, #d8a06b 66%, #b89570 100%)" }}
+                  >
+                    <video
+                      data-promise-video={2}
+                      src="/videos/promise-seasons.mp4"
+                      muted
+                      loop
+                      playsInline
+                      preload="metadata"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -145,30 +205,6 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="pillars section-pad reveal" id="vault" aria-labelledby="pillars-title">
-          <div className="section-heading">
-            <p className="eyebrow">Inside the vault</p>
-            <h2 id="pillars-title">What the polyhouse actually does.</h2>
-          </div>
-          <div className="pillars__grid">
-            <article className="pillar">
-              <p className="pillar__name">Climate</p>
-              <p className="pillar__line">22&ndash;26&deg;C, dialed by hour.</p>
-            </article>
-            <article className="pillar">
-              <p className="pillar__name">Hygiene</p>
-              <p className="pillar__line">Sealed envelope. No pesticides.</p>
-            </article>
-            <article className="pillar">
-              <p className="pillar__name">Hand-care</p>
-              <p className="pillar__line">Vanilla hand-pollinated daily.</p>
-            </article>
-            <article className="pillar">
-              <p className="pillar__name">Year-round</p>
-              <p className="pillar__line">12 harvests where outdoor farms get one.</p>
-            </article>
-          </div>
-        </section>
 
         <section className="quote-band" aria-label="Brand promise">
           <blockquote className="quote-band__inner">

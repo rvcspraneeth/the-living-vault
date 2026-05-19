@@ -300,62 +300,195 @@ svg {
   padding: clamp(5.5rem, 9vw, 9.5rem) clamp(1rem, 5vw, 4rem);
 }
 
-/* The promise — pinned cinematic moment. Outer section provides scroll
-   length; .promise__inner sticks to top of viewport while words ink up. */
+/* The promise — TI-pattern numbered scroll section. Headline at top,
+   then bullets scroll past on the left while the right image swaps. */
 .promise {
   position: relative;
-  min-height: 220vh; /* gives GSAP ScrollTrigger room to pin + scrub */
+  background: var(--cream);
 }
 
 .promise__inner {
-  position: relative;
-  min-height: 100vh;
-  display: grid;
-  align-content: center;
-  padding: 0 clamp(1.5rem, 8vw, 8rem);
-  max-width: 90rem;
-  margin: 0 auto;
+  padding: clamp(4rem, 10vh, 10rem) 0 clamp(2rem, 6vh, 6rem);
 }
 
-.promise__accent {
-  position: absolute;
-  left: clamp(1.5rem, 8vw, 8rem);
-  top: 50%;
-  width: 1px;
-  height: 7rem;
-  background: linear-gradient(180deg, transparent, var(--ink) 30%, var(--ink) 70%, transparent);
-  transform: translateY(-50%);
-  opacity: 0.55;
-}
-
-.promise__eyebrow {
-  margin: 0 0 clamp(2.2rem, 4vw, 3.5rem);
-  padding-left: 2.2rem;
-  font-family: var(--sans);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: var(--gold);
-}
-
-.promise__line {
-  margin: 0;
-  padding-left: 2.2rem;
+.promise__headline {
+  margin: 0 auto clamp(4rem, 10vh, 9rem);
+  padding: 0 clamp(1.5rem, 6vw, 5rem);
+  max-width: 64rem;
+  text-align: center;
   font-family: var(--serif);
   font-weight: 700;
-  font-size: clamp(2.6rem, 6.4vw, 6rem);
+  font-size: clamp(2.6rem, 6vw, 5.6rem);
   line-height: 1.04;
   letter-spacing: -0.02em;
   color: var(--ink);
-  max-width: 22ch;
 }
 
-/* Words start as faint ghosts; GSAP scrub inks them up as user scrolls. */
-.promise__word {
+.promise__headline-line { display: block; }
+
+/* Two-column scroll: left bullets stack vertically, right image is sticky */
+.promise__scroll {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 6rem);
+  align-items: start;
+}
+
+.promise__bullets {
+  display: flex;
+  flex-direction: column;
+  padding-left: clamp(1.5rem, 8vw, 8rem);
+}
+
+.promise__bullet {
+  min-height: 90vh;
+  max-width: 30rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.promise__index {
+  margin: 0 0 1.4rem;
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(43, 27, 18, 0.22);
+  display: inline-flex;
+  gap: 0.05em;
+  font-variant-numeric: tabular-nums;
+  transition: color 0.4s ease;
+}
+
+.promise__index-digit {
   display: inline-block;
-  color: rgba(43, 27, 18, 0.14);
-  will-change: color;
+}
+
+.promise__bullet.is-active .promise__index {
+  color: var(--gold);
+}
+
+.promise__bullet.is-active .promise__index-digit--accent {
+  animation: promise-digit-roll 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes promise-digit-roll {
+  0%   { transform: translateY(0.55em); opacity: 0; }
+  35%  { transform: translateY(-0.12em); opacity: 1; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+.promise__title {
+  margin: 0 0 0.9rem;
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: rgba(43, 27, 18, 0.28);
+  transition: color 0.6s ease;
+}
+
+.promise__bullet.is-active .promise__title {
+  animation: promise-ink-3stage 0.7s ease-out forwards;
+}
+
+@keyframes promise-ink-3stage {
+  0%   { color: rgba(43, 27, 18, 0.28); }
+  30%  { color: var(--gold); }
+  100% { color: var(--ink); }
+}
+
+.promise__body {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: clamp(1.1rem, 1.9vw, 1.6rem);
+  line-height: 1.4;
+  letter-spacing: -0.005em;
+  color: rgba(43, 27, 18, 0.22);
+  transition: color 0.6s ease;
+}
+
+.promise__bullet.is-active .promise__body {
+  animation: promise-ink-body-3stage 0.7s ease-out 0.1s forwards;
+}
+
+@keyframes promise-ink-body-3stage {
+  0%   { color: rgba(43, 27, 18, 0.22); }
+  30%  { color: rgba(184, 134, 11, 0.7); }
+  100% { color: rgba(43, 27, 18, 0.82); }
+}
+
+/* Scroll-driven progress bar pinned to the top of the section */
+.promise__progress {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  width: 100%;
+  height: 2px;
+  background: rgba(43, 27, 18, 0.07);
+  margin-bottom: -2px;
+}
+
+.promise__progress-fill {
+  height: 100%;
+  width: 0;
+  background: var(--gold);
+  will-change: width;
+}
+
+/* Sticky right column — image stays put while bullets scroll past */
+.promise__media-col {
+  position: relative;
+  height: 100%;
+}
+
+.promise__media {
+  position: sticky;
+  top: 18vh;
+  height: 64vh;
+  width: 100%;
+  border-radius: 6px 0 0 6px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px -30px rgba(43, 27, 18, 0.35);
+}
+
+.promise__media-frame {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+
+.promise__media-frame.is-active { opacity: 1; }
+
+.promise__media-frame video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: transparent;
+}
+
+@media (max-width: 900px) {
+  .promise__scroll {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .promise__bullets { padding: 0 clamp(1.5rem, 6vw, 3rem); }
+  .promise__bullet { min-height: auto; padding: 2.5rem 0; opacity: 1; }
+  .promise__media-col { order: -1; }
+  .promise__media {
+    position: relative;
+    top: auto;
+    height: clamp(18rem, 42vh, 26rem);
+  }
 }
 
 /* ---- BANNERS / SECTION BREAKS ---- */
